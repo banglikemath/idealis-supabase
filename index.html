@@ -34,7 +34,7 @@
   ::placeholder{color:var(--muted)}
   .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;
     padding:14px 16px;background:rgba(11,15,16,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-  .topbar h1{font-size:17px;font-weight:600;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:130px}
+  .topbar h1{font-size:17px;font-weight:600;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .topbar .sub{font-size:12px;color:var(--muted);font-weight:400}
   .iconbtn{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;font-size:22px;color:var(--cyan);flex-shrink:0}
   .iconbtn:active{background:var(--surface-2)}
@@ -199,7 +199,9 @@
   .rolebar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface-2);border-bottom:1px solid var(--line);padding:7px 14px;font-size:12px;color:var(--muted)}
   .rolebar button{background:none;border:1px solid var(--line);color:var(--muted);font-family:inherit;font-size:12px;border-radius:8px;padding:5px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .rolebar button:active{transform:scale(.96)}
-  .rttrigger{position:fixed;top:9px;right:12px;z-index:30;display:inline-flex;align-items:center;gap:5px;font-family:inherit;font-weight:600;font-size:13px;color:var(--cyan);background:rgba(0,201,204,.10);border:1px solid rgba(0,201,204,.35);border-radius:999px;padding:8px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .rolebaracts{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .rttrigger{display:inline-flex;align-items:center;gap:5px;font-family:inherit;font-weight:600;font-size:12px;color:var(--cyan);background:rgba(0,201,204,.10);border:1px solid rgba(0,201,204,.35);border-radius:999px;padding:5px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+  .rttrigger:active{transform:scale(.95)}
   .syncbadge{position:fixed;left:12px;bottom:16px;z-index:40;font-family:inherit;font-weight:600;font-size:12px;border-radius:999px;padding:8px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);box-shadow:0 4px 14px rgba(0,0,0,.35)}
   .syncbadge:active{transform:scale(.96)}
   .syncbadge.sending{color:var(--cyan-2);border-color:rgba(0,201,204,.4)}
@@ -288,6 +290,55 @@ function allLogsOfExercise(student, exName, exId){
   return out.sort((a,b)=>a.date.localeCompare(b.date));
 }
 function lastLogOfExercise(student, exName, exId){ const logs=allLogsOfExercise(student,exName,exId); return logs.length?logs[logs.length-1]:null; }
+
+/* ===== CAMADA 2: LEITURA DO SUPABASE =====
+   Busca tudo do banco e monta o MESMO formato que a UI já usa.
+   Assim nenhum componente precisa ser reescrito. */
+const CACHE_META_KEY = 'idealis_presencial_cache_meta_v1';
+function loadCacheMeta(){ if(!LS_OK) return null; try{return window.localStorage.getItem(CACHE_META_KEY);}catch(e){return null;} }
+function saveCacheMeta(iso){ if(!LS_OK)return; try{window.localStorage.setItem(CACHE_META_KEY,iso);}catch(e){} }
+async function fetchDbFromSupabase(){
+  if(!sb) return {ok:false, erro:'Sem conexão com o servidor.'};
+  try{
+    // o RLS já filtra: treinador vê tudo, aluno vê só o dele
+    const [rAlunos, rTreinos, rEx, rLogs] = await Promise.all([
+      sb.from('alunos').select('id,nome').order('nome'),
+      sb.from('treinos').select('id,aluno_id,nome,ordem').order('ordem'),
+      sb.from('exercicios').select('id,treino_id,nome,series,cardapio_id,ordem,done_date').order('ordem'),
+      sb.from('logs').select('id,exercicio_id,data,carga,reps,intensidade,dor').order('data')
+    ]);
+    const err = rAlunos.error||rTreinos.error||rEx.error||rLogs.error;
+    if(err) return {ok:false, erro:err.message};
+
+    const logsPorEx={};
+    (rLogs.data||[]).forEach(l=>{
+      (logsPorEx[l.exercicio_id]=logsPorEx[l.exercicio_id]||[]).push({
+        id:l.id, date:l.data, carga:l.carga||'', reps:l.reps||'',
+        intensidade:l.intensidade, dor:l.dor
+      });
+    });
+    const exPorTreino={};
+    (rEx.data||[]).forEach(e=>{
+      (exPorTreino[e.treino_id]=exPorTreino[e.treino_id]||[]).push({
+        id:e.id, name:e.nome, series:e.series||'',
+        exerciseId:e.cardapio_id, doneDate:e.done_date,
+        logs: logsPorEx[e.id]||[]
+      });
+    });
+    const treinosPorAluno={};
+    (rTreinos.data||[]).forEach(t=>{
+      (treinosPorAluno[t.aluno_id]=treinosPorAluno[t.aluno_id]||[]).push({
+        id:t.id, nome:t.nome, exercises: exPorTreino[t.id]||[]
+      });
+    });
+    const students=(rAlunos.data||[]).map(a=>({
+      id:a.id, name:a.nome, treinos: treinosPorAluno[a.id]||[]
+    }));
+    return {ok:true, db:{students}};
+  }catch(e){
+    return {ok:false, erro:String(e)};
+  }
+}
 
 /* ===== CATÁLOGO (Cardápio WTDN — leitura com cache offline) ===== */
 const CARDAPIO_URL = 'https://script.google.com/macros/s/AKfycbyi183noK7vugBRyh5AMMcgey2Ksz2oqQvKGAfZ8Q-ZcJU0ag4TxzuiAS6oDP0u3BI7/exec';
@@ -427,21 +478,37 @@ function RestTimerOverlay({timer}){
   </React.Fragment>);
 }
 function App({auth}){
-  const [db,setDb]=useState(loadDB);
+  const [db,setDb]=useState(loadDB);          // começa do cache local (instantâneo)
+  const [carga,setCarga]=useState({estado:'inicial', quando:loadCacheMeta()});
   const [view,setView]=useState({name:'students'});
   const [toast,setToast]=useState(null);
   const [sync,setSync]=useState({state:'idle', pend:loadQueue().length, last:loadSyncMeta().last});
   const timer=useRestTimer();
   const prevStructRef=React.useRef(null);
-  useEffect(()=>{
-    saveDB(db);
-    // detecta mudança estrutural (ignora o check "doneDate", que é efêmero)
-    const snap=JSON.stringify(buildEstruturaSnapshot(db));
-    if(prevStructRef.current!==null && prevStructRef.current!==snap){
-      try{ window.localStorage.setItem(ESTRUTURA_DIRTY_KEY,'1'); }catch(e){}
-      if(window.__triggerSync) window.__triggerSync();
+
+  // CAMADA 2: busca do Supabase e atualiza o cache. Offline usa o cache.
+  const recarregar=React.useCallback(async ()=>{
+    if(!navigator.onLine){ setCarga(c=>({...c, estado:'offline'})); return; }
+    setCarga(c=>({...c, estado:'carregando'}));
+    const r=await fetchDbFromSupabase();
+    if(r.ok){
+      setDb(r.db);
+      saveDB(r.db);                 // guarda como cache pra uso offline
+      const agora=new Date().toISOString();
+      saveCacheMeta(agora);
+      setCarga({estado:'ok', quando:agora});
+    }else{
+      setCarga(c=>({...c, estado:'erro', erro:r.erro}));
     }
-    prevStructRef.current=snap;
+  },[]);
+  useEffect(()=>{ recarregar(); },[recarregar]);
+  useEffect(()=>{
+    const onOnline=()=>recarregar();
+    window.addEventListener('online',onOnline);
+    return ()=>window.removeEventListener('online',onOnline);
+  },[recarregar]);
+  useEffect(()=>{
+    saveDB(db); // mantém o cache local atualizado (uso offline)
   },[db]);
   const flash=(m)=>{setToast(m);setTimeout(()=>setToast(null),1600);};
   const nav=(v)=>setView(v);
@@ -477,15 +544,34 @@ function App({auth}){
   return (<React.Fragment>
     {!LS_OK && <div className="warnbar">⚠️ Modo temporário: os dados somem ao fechar. Abra pelo link do GitHub Pages para salvar.</div>}
     {auth && <div className="rolebar">
-      <span>👤 {auth.perfil.papel==='treinador'?'Treinador':'Aluno'} · {auth.user.email}</span>
-      <button onClick={auth.sair}>Sair</button>
+      <span>👤 {auth.perfil.papel==='treinador'?'Treinador':'Aluno'}</span>
+      <div className="rolebaracts">
+        <RestTimerTrigger timer={timer}/>
+        <button onClick={auth.sair}>Sair</button>
+      </div>
     </div>}
     {screen}
-    <SyncBadge sync={sync} onRetry={doSync}/>
-    <RestTimerTrigger timer={timer}/>
+    <NuvemBadge carga={carga} onRetry={recarregar}/>
     <RestTimerOverlay timer={timer}/>
     {toast && <div className="toast">{toast}</div>}
   </React.Fragment>);
+}
+function NuvemBadge({carga,onRetry}){
+  const {estado,quando}=carga;
+  if(estado==='ok'||estado==='inicial') return null; // tudo certo: não polui
+  let txt,cls;
+  if(estado==='carregando'){ txt='Carregando…'; cls='sending'; }
+  else if(estado==='offline'){
+    txt = quando ? ('Offline · dados de '+_hhmm(quando)) : 'Offline · sem dados salvos';
+    cls='off';
+  }
+  else if(estado==='erro'){ txt='Erro ao carregar · tocar p/ tentar'; cls='err'; }
+  else return null;
+  return <button className={'syncbadge '+cls} onClick={onRetry}>{txt}</button>;
+}
+function _hhmm(iso){
+  try{ const d=new Date(iso); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+  catch(e){ return ''; }
 }
 function SyncBadge({sync,onRetry}){
   const {state,pend}=sync;

@@ -110,6 +110,17 @@
   .donecheck .dcicon{font-size:18px;font-weight:800;line-height:1;height:18px}
   .donecheck .dclabel{font-family:inherit;font-size:11px;font-weight:700;color:#ddff00;line-height:1}
   .donecheck.on .dclabel{color:#0b0f10}
+  .seriering{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;padding:2px 0;cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit}
+  .seriering:active{transform:scale(.93)}
+  .seriering .srtop{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.04em}
+  .seriering .srring{position:relative;display:block;width:44px;height:44px;line-height:0}
+  .seriering .srtrack{fill:none;stroke:rgba(255,255,255,.10);stroke-width:4}
+  .seriering .srfill{fill:none;stroke:var(--cyan);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset .35s ease,stroke .25s}
+  .seriering.full .srfill{stroke:#ddff00}
+  .seriering .srnum{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);font-size:13px;font-weight:800;color:var(--text);line-height:1;font-variant-numeric:tabular-nums}
+  .seriering.full .srnum{color:#ddff00;font-size:17px}
+  .seriering .srbot{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+  .seriering.full .srbot{color:#ddff00}
   .reorder{display:flex;flex-direction:column;gap:4px;flex-shrink:0;margin-top:2px}
   .reorder button{width:34px;height:30px;border-radius:8px;display:grid;place-items:center;
     font-size:16px;background:var(--surface-2);border:1px solid var(--line);color:var(--cyan)}
@@ -409,6 +420,34 @@ async function fetchDbFromSupabase(){
   }catch(e){
     return {ok:false, erro:String(e)};
   }
+}
+
+/* extrai o nº de séries de "3 × 8 a 12" -> 3 */
+function numSeries(series){
+  const m=String(series||'').match(/^\s*(\d+)\s*[x×]/i);
+  if(m){ const n=parseInt(m[1],10); if(n>0 && n<=20) return n; }
+  return null;
+}
+/* Anel de progresso das séries (só na sessão, não persiste) */
+function SerieRing({total,feitas,onAvancar,onZerar}){
+  const completo = feitas>=total;
+  const R=17, C=2*Math.PI*R;
+  const frac = total>0 ? Math.min(1,feitas/total) : 0;
+  return (<button className={'seriering'+(completo?' full':'')}
+    onClick={()=>{ if(completo) onZerar(); else onAvancar(); }}
+    aria-label={completo?'Zerar séries':'Concluir série '+(feitas+1)}>
+    <span className="srtop">Série</span>
+    <span className="srring">
+      <svg viewBox="0 0 44 44" width="44" height="44">
+        <circle cx="22" cy="22" r={R} className="srtrack"/>
+        <circle cx="22" cy="22" r={R} className="srfill"
+          strokeDasharray={C} strokeDashoffset={C*(1-frac)}
+          transform="rotate(-90 22 22)"/>
+      </svg>
+      <span className="srnum">{completo?'✓':(feitas+'/'+total)}</span>
+    </span>
+    <span className="srbot">{completo?'Concluído':'Pendente'}</span>
+  </button>);
 }
 
 /* ===== VÍDEO (YouTube) ===== */
@@ -1119,6 +1158,20 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer}){
     }});
     flash('Carga registrada ✓'); setRegistering(null);
   };
+  // progresso de séries — só na sessão (não persiste)
+  const [seriesFeitas,setSeriesFeitas]=useState({});
+  const avancarSerie=(ex)=>{
+    const tot=numSeries(ex.series);
+    setSeriesFeitas(m=>{
+      const atual=m[ex.id]||0;
+      const novo=Math.min(tot, atual+1);
+      return {...m,[ex.id]:novo};
+    });
+    // inicia o descanso automaticamente, se houver prescrição
+    const f=parseDescanso(ex.descanso);
+    if(f && timer) timer.start(f, ex.name);
+  };
+  const zerarSerie=(exId)=>setSeriesFeitas(m=>({...m,[exId]:0}));
   // mapa cardapio_id -> url de vídeo (do cache do Cardápio)
   const videoPorId=React.useMemo(()=>{
     const m={}; loadCatalogo().forEach(c=>{ if(c.video) m[String(c.id)]=c.video; }); return m;
@@ -1131,7 +1184,9 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer}){
         const last=lastLogOfExercise(s,ex.name,ex.exerciseId);
         const total=(t.exercises||[]).length;
         const done = ex.doneDate===todayISO();
-        return (<div key={ex.id} className={'exrow'+(done?' done':'')}>
+        const totSeries = numSeries(ex.series);
+        const concluido = totSeries ? ((seriesFeitas[ex.id]||0)>=totSeries) : done;
+        return (<div key={ex.id} className={'exrow'+(concluido?' done':'')}>
           <div className="exhead">
             {!ehAluno && <div className="reorder">
               <button disabled={idx===0} onClick={()=>moveEx(idx,-1)} aria-label="Subir">▲</button>
@@ -1146,10 +1201,13 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer}){
                 </button>}
               </div>
             </div>
-            <button className={'donecheck'+(done?' on':'')} onClick={()=>toggleDone(ex.id)} aria-label={done?'Marcar como não feito':'Marcar como feito'}>
-              <span className="dcicon">{done?'✓':''}</span>
-              <span className="dclabel">Feito</span>
-            </button>
+            {numSeries(ex.series)
+              ? <SerieRing total={numSeries(ex.series)} feitas={seriesFeitas[ex.id]||0}
+                  onAvancar={()=>avancarSerie(ex)} onZerar={()=>zerarSerie(ex.id)}/>
+              : <button className={'donecheck'+(done?' on':'')} onClick={()=>toggleDone(ex.id)} aria-label={done?'Marcar como não feito':'Marcar como feito'}>
+                  <span className="dcicon">{done?'✓':''}</span>
+                  <span className="dclabel">Feito</span>
+                </button>}
           </div>
           {ex.exerciseId!=null && videoPorId[String(ex.exerciseId)] && <VideoExercicio url={videoPorId[String(ex.exerciseId)]}/>}
           <div className="exlast">

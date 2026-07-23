@@ -268,6 +268,20 @@
   .fimcard .fcsub{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:16px}
   .fimcard .fcbtn{width:100%;padding:15px;border-radius:13px;border:none;background:var(--cyan);color:#04191a;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
   .fimcard .fcskip{margin-top:10px;background:none;border:none;color:var(--muted);font-size:13px;font-family:inherit;cursor:pointer;text-decoration:underline;padding:6px}
+  .sesspanel{margin:18px 4px 90px;padding:16px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line)}
+  .sesspanel .sptit{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px}
+  .sesspanel .spcount{font-size:12px;font-weight:700;color:#04191a;background:var(--cyan);border-radius:999px;padding:2px 9px}
+  .sesspanel .sprow{display:flex;gap:8px;margin-bottom:12px}
+  .sesspanel .spdate{flex:1;min-width:0;padding:11px 12px;border-radius:11px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-family:inherit;font-size:14px}
+  .sesspanel .spadd{flex:0 0 auto;padding:11px 16px;border-radius:11px;border:1px solid var(--cyan);background:rgba(0,201,204,.12);color:var(--cyan-2);font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+  .sesspanel .spvazio{font-size:12.5px;color:var(--muted);padding:4px 2px}
+  .sesspanel .splist{display:flex;flex-direction:column;gap:6px}
+  .sesspanel .spitem{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+  .sesspanel .spdata{flex:1;font-size:13.5px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+  .sesspanel .sporig{font-size:10.5px;font-weight:700;color:var(--muted);background:var(--surface-2);border-radius:999px;padding:2px 8px;text-transform:uppercase;letter-spacing:.03em}
+  .sesspanel .spdel{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-size:14px;cursor:pointer;font-family:inherit}
+  .sesspanel .spdel:active{background:rgba(255,92,108,.15);color:var(--danger)}
+  .sesspanel .spmais{font-size:11.5px;color:var(--muted);text-align:center;padding-top:4px}
   .fimmini{display:block;width:100%;margin:18px 4px 90px;padding:13px;border-radius:13px;border:1px solid var(--cyan);background:rgba(0,201,204,.08);color:var(--cyan-2);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer}
   .fimdone{margin:18px 4px 90px;padding:16px;border-radius:16px;background:rgba(0,201,204,.07);border:1px solid rgba(0,201,204,.35);text-align:center}
   .fimdone .fdtit{font-size:15px;font-weight:700;color:var(--cyan-2)}
@@ -420,13 +434,14 @@ async function fetchDbFromSupabase(){
   if(!sb) return {ok:false, erro:'Sem conexão com o servidor.'};
   try{
     // o RLS já filtra: treinador vê tudo, aluno vê só o dele
-    const [rAlunos, rTreinos, rEx, rLogs] = await Promise.all([
+    const [rAlunos, rTreinos, rEx, rLogs, rSess] = await Promise.all([
       sb.from('alunos').select('id,nome').order('nome'),
       sb.from('treinos').select('id,aluno_id,nome,ordem,concluido_data').order('ordem'),
       sb.from('exercicios').select('id,treino_id,nome,series,cardapio_id,ordem,done_date,descanso,filmar').order('ordem'),
-      sb.from('logs').select('id,exercicio_id,data,carga,reps,intensidade,dor').order('data')
+      sb.from('logs').select('id,exercicio_id,data,carga,reps,intensidade,dor').order('data'),
+      sb.from('sessoes').select('id,aluno_id,treino_id,data,origem').order('data')
     ]);
-    const err = rAlunos.error||rTreinos.error||rEx.error||rLogs.error;
+    const err = rAlunos.error||rTreinos.error||rEx.error||rLogs.error||rSess.error;
     if(err) return {ok:false, erro:err.message};
 
     const logsPorEx={};
@@ -444,10 +459,15 @@ async function fetchDbFromSupabase(){
         logs: logsPorEx[e.id]||[]
       });
     });
+    const sessPorTreino={};
+    (rSess.data||[]).forEach(x=>{
+      (sessPorTreino[x.treino_id]=sessPorTreino[x.treino_id]||[]).push({id:x.id,data:x.data,origem:x.origem||'manual'});
+    });
     const treinosPorAluno={};
     (rTreinos.data||[]).forEach(t=>{
       (treinosPorAluno[t.aluno_id]=treinosPorAluno[t.aluno_id]||[]).push({
-        id:t.id, nome:t.nome, concluidoData:t.concluido_data, exercises: exPorTreino[t.id]||[]
+        id:t.id, nome:t.nome, concluidoData:t.concluido_data,
+        sessoes: sessPorTreino[t.id]||[], exercises: exPorTreino[t.id]||[]
       });
     });
     const students=(rAlunos.data||[]).map(a=>({
@@ -1184,6 +1204,7 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
   // sozinho (evita o loop: card aparece -> página cresce -> sai do fim -> card some...).
   const [armado,setArmado]=useState(false);
   const [dispensado,setDispensado]=useState(false);
+  const [dataRetro,setDataRetro]=useState(todayISO());
   useEffect(()=>{
     abertoEmRef.current=Date.now();
     setArmado(false); setDispensado(false);
@@ -1240,20 +1261,33 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
     updExercises(t.exercises.filter(e=>e.id!==id));
     enqueueOp({tipo:'delete',tabela:'exercicios',id});
   };
-  const treinoConcluidoHoje = t.concluidoData===todayISO();
+  // ---- sessões (append-only): fonte de verdade do histórico de presença ----
+  const sessoes = t.sessoes||[];
+  const sessaoDe = (iso)=>sessoes.find(x=>x.data===iso)||null;
+  const sessaoHoje = sessaoDe(todayISO());
+  const treinoConcluidoHoje = !!sessaoHoje;
   const updTreino=(patch)=>setDb({...db,students:db.students.map(x=>x.id===studentId?{...x,treinos:x.treinos.map(tt=>tt.id===treinoId?{...tt,...patch}:tt)}:x)});
-  const concluirTreino=()=>{
-    const d=todayISO();
-    updTreino({concluidoData:d});
-    enqueueOp({tipo:'update',tabela:'treinos',id:treinoId,dados:{concluido_data:d}});
+  const registrarSessao=(iso,origem)=>{
+    if(sessaoDe(iso)){ flash('Já registrado nesse dia'); return; }
+    const nova={id:uid(), data:iso, origem:origem||'manual'};
+    updTreino({sessoes:[...sessoes,nova].sort((a,b)=>a.data.localeCompare(b.data)), concluidoData:iso});
+    enqueueOp({tipo:'insert',tabela:'sessoes',dados:{
+      id:nova.id, aluno_id:studentId, treino_id:treinoId, data:iso, origem:nova.origem
+    }});
     if(navigator.vibrate) navigator.vibrate([180,80,180]);
-    flash('Treino concluído ✓');
+    flash(iso===todayISO()?'Treino concluído ✓':('Registrado em '+fmtDate(iso)+' ✓'));
   };
-  const desfazerConclusao=()=>{
-    updTreino({concluidoData:null});
-    enqueueOp({tipo:'update',tabela:'treinos',id:treinoId,dados:{concluido_data:null}});
-    flash('Conclusão desfeita');
+  const concluirTreino=()=>registrarSessao(todayISO(),'manual');
+  const removerSessao=(iso)=>{
+    const alvo=sessaoDe(iso);
+    if(!alvo) return;
+    const restantes=sessoes.filter(x=>x.data!==iso);
+    const ultima=restantes.length?restantes[restantes.length-1].data:null;
+    updTreino({sessoes:restantes, concluidoData:ultima});
+    enqueueOp({tipo:'delete',tabela:'sessoes',id:alvo.id});
+    flash('Registro removido');
   };
+  const desfazerConclusao=()=>removerSessao(todayISO());
   const toggleDone=(id)=>{
     const alvo=(t.exercises||[]).find(e=>e.id===id);
     const novaData = (alvo && alvo.doneDate===todayISO()) ? null : todayISO();
@@ -1356,7 +1390,7 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
         treinoConcluidoHoje
           ? <div className="fimdone">
               <div className="fdtit">✓ Treino concluído hoje</div>
-              <div className="fdsub">Registrado em {fmtDate(t.concluidoData)}</div>
+              <div className="fdsub">{sessoes.length} {sessoes.length===1?'sessão registrada':'sessões registradas'}</div>
               <button className="fdundo" onClick={desfazerConclusao}>desfazer</button>
             </div>
           : (armado && (dispensado
@@ -1368,6 +1402,25 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
                   <button className="fcskip" onClick={()=>setDispensado(true)}>ainda não terminei</button>
                 </div>))
       )}
+      {!ehAluno && (t.exercises||[]).length>0 && <div className="sesspanel">
+        <div className="sptit">📅 Sessões registradas <span className="spcount">{sessoes.length}</span></div>
+        <div className="sprow">
+          <input className="spdate" type="date" max={todayISO()} value={dataRetro} onChange={e=>setDataRetro(e.target.value)}/>
+          <button className="spadd" onClick={()=>{ if(dataRetro) registrarSessao(dataRetro,'manual'); }}>+ Marcar</button>
+        </div>
+        {sessoes.length===0
+          ? <div className="spvazio">Nenhuma sessão registrada ainda.</div>
+          : <div className="splist">
+              {sessoes.slice().reverse().slice(0,12).map(x=>(
+                <div key={x.id} className="spitem">
+                  <span className="spdata">{fmtDate(x.data)}</span>
+                  {x.origem!=='manual' && <span className="sporig">{x.origem}</span>}
+                  <button className="spdel" onClick={()=>removerSessao(x.data)} aria-label="Remover">✕</button>
+                </div>
+              ))}
+              {sessoes.length>12 && <div className="spmais">+{sessoes.length-12} anteriores</div>}
+            </div>}
+      </div>}
     </div>
     {!ehAluno && <button className="fab" onClick={()=>setEditingEx('new')}>＋ Exercício</button>}
     {editingEx && !ehAluno && <ExerciseSheet initial={editingEx==='new'?null:editingEx} onSave={saveEx} onClose={()=>setEditingEx(null)}/>}

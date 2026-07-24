@@ -248,8 +248,10 @@
   .warnbar{background:#3a2a10;color:#f1d94a;font-size:12px;text-align:center;padding:7px 12px;line-height:1.4}
   .loginwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
   .loginbox{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:28px 22px}
-  .loginlogo{font-size:24px;font-weight:700;text-align:center;margin-bottom:4px}
-  .loginlogo span{color:var(--cyan)}
+  .loginhead{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:26px}
+  .loginhead .logoid{margin-bottom:16px}
+  .loginmarca{font-size:27px;font-weight:800;letter-spacing:.16em;color:var(--text);line-height:1;text-indent:.16em}
+  .loginautor{font-size:13.5px;font-weight:500;letter-spacing:.03em;color:var(--muted);margin-top:9px}
   .loginsub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:22px;line-height:1.4}
   .loginerro{background:rgba(255,92,108,.12);border:1px solid rgba(255,92,108,.4);color:#ff9ba3;font-size:13px;padding:10px 12px;border-radius:10px;margin-bottom:12px}
   .loginbtn{width:100%;margin-top:4px}
@@ -1659,6 +1661,13 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
       onSave={(data)=>editLogSave(editing.id,data)} onClose={()=>setEditing(null)}/>}
   </React.Fragment>);
 }
+function LoginHeader(){
+  return (<div className="loginhead">
+    <LogoIdealis size={78}/>
+    <div className="loginmarca">IDEALIS</div>
+    <div className="loginautor">Matheus Ferreira</div>
+  </div>);
+}
 function LoginScreen({onEntrar}){
   const [email,setEmail]=useState('');
   const [senha,setSenha]=useState('');
@@ -1673,8 +1682,7 @@ function LoginScreen({onEntrar}){
   };
   return (<div className="loginwrap">
     <div className="loginbox">
-      <div className="loginlogo">Idealis <span>Presencial</span></div>
-      <div className="loginsub">Entre para acessar seus treinos</div>
+      <LoginHeader/>
       <div className="field"><label>Email</label>
         <input type="email" inputMode="email" autoCapitalize="none" value={email} onChange={e=>{setEmail(e.target.value);setErro('');}} placeholder="seu@email.com"/></div>
       <div className="field"><label>Senha</label>
@@ -1686,11 +1694,11 @@ function LoginScreen({onEntrar}){
 }
 function Root(){
   const auth=useAuth();
-  if(auth.loading) return <div className="loginwrap"><div className="loginbox"><div className="loginlogo">Idealis <span>Presencial</span></div><div className="loginsub">Carregando…</div></div></div>;
+  if(auth.loading) return <div className="loginwrap"><div className="loginbox"><LoginHeader/><div className="loginsub">Carregando…</div></div></div>;
   if(!auth.user) return <LoginScreen onEntrar={auth.entrar}/>;
   // logado mas sem perfil vinculado
   if(!auth.perfil) return <div className="loginwrap"><div className="loginbox">
-    <div className="loginlogo">Idealis <span>Presencial</span></div>
+    <LoginHeader/>
     <div className="loginsub">Login sem perfil vinculado.<br/>Fale com seu treinador.</div>
     {auth.erro && <div className="loginerro">{auth.erro}</div>}
     <button className="btn ghost" onClick={auth.sair}>Sair</button>

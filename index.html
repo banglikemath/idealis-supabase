@@ -281,6 +281,86 @@
   .rtrunning.liberado .rtclock{color:#ddff00}
   .rtrunning.fim .rtclock{color:var(--muted)}
   .rtrunning .rtcancel{font-size:11px;font-weight:500;color:var(--muted)}
+  /* --- editor de método (montagem) --- */
+  .metrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .metatual{flex:1;min-width:120px;font-size:13.5px;color:var(--muted);padding:10px 12px;border-radius:11px;
+    background:var(--surface-2);border:1px solid var(--line)}
+  .metatual.on{color:var(--cyan-2);border-color:var(--cyan);background:rgba(0,201,204,.1);font-weight:600}
+  .metbtn{padding:10px 13px;border-radius:11px;border:1px solid var(--line);background:var(--bg);
+    color:var(--text);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .metbtn.del{color:#ff9ba3;border-color:rgba(255,92,108,.35)}
+  .metlista{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:290px;overflow-y:auto;
+    padding:10px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+  .metopt{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;padding:10px 12px;
+    border-radius:10px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-family:inherit}
+  .metopt:active{border-color:var(--cyan)}
+  .metopt.novo{border-style:dashed}
+  .metopt .monome{font-size:13.5px;font-weight:600;color:var(--text)}
+  .metopt .modesc{font-size:11px;color:var(--muted)}
+  .metcancel{background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;
+    text-decoration:underline;cursor:pointer;padding:6px}
+  .metmodo{display:flex;gap:6px;margin-bottom:10px}
+  .mmtab{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--bg);
+    color:var(--muted);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+  .mmtab.sel{border-color:var(--cyan);background:rgba(0,201,204,.12);color:var(--cyan-2)}
+  .mmqtd{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:12.5px;color:var(--muted)}
+  .mmqtd input{width:70px;padding:8px 10px;border-radius:9px;border:1px solid var(--line);
+    background:var(--bg);color:var(--text);font-family:inherit;font-size:14px}
+  .serielist{display:flex;flex-direction:column;gap:8px}
+  .serieitem{padding:9px 10px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line)}
+  .sihead{display:flex;align-items:center;gap:6px}
+  .sinum{flex:0 0 auto;min-width:36px;font-size:11.5px;font-weight:700;color:var(--cyan-2)}
+  .sireps{flex:1;min-width:0;padding:8px 10px;border-radius:9px;border:1px solid var(--line);
+    background:var(--bg);color:var(--text);font-family:inherit;font-size:13px}
+  .sidesc{flex:0 0 62px;width:62px;padding:8px 8px;border-radius:9px;border:1px solid var(--line);
+    background:var(--bg);color:var(--text);font-family:inherit;font-size:13px;text-align:center}
+  .simore,.sidel{flex:0 0 auto;width:28px;height:32px;border-radius:9px;border:1px solid var(--line);
+    background:var(--bg);color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer}
+  .sidel{color:#ff9ba3}
+  .siresumo{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;padding-left:42px}
+  .sitag{font-size:10.5px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--line);
+    border-radius:999px;padding:2px 8px}
+  .sitag.ext{color:#ffc48a;border-color:rgba(255,170,90,.35)}
+  .sidetalhe{margin-top:9px;padding:10px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+  .sdrow{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .sdrow>span:first-child{flex:0 0 62px;font-size:11.5px;color:var(--muted)}
+  .sdrow input{flex:1;min-width:0;padding:7px 10px;border-radius:8px;border:1px solid var(--line);
+    background:var(--surface-2);color:var(--text);font-family:inherit;font-size:12.5px}
+  .sdrow.bl>span.sdext{flex:0 0 58px;font-size:11px;font-weight:700;color:#ffc48a}
+  .sdrow button{flex:0 0 auto;width:26px;height:28px;border-radius:8px;border:1px solid var(--line);
+    background:var(--surface-2);color:#ff9ba3;font-family:inherit;font-size:11px;cursor:pointer}
+  .sdsub{font-size:11px;font-weight:700;color:var(--text);margin:10px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+  .sdsub .sdhint{font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
+  .sdadd{padding:6px 11px;border-radius:8px;border:1px dashed var(--line);background:transparent;
+    color:var(--muted);font-family:inherit;font-size:11.5px;cursor:pointer}
+  .sdbtns{display:flex;gap:6px;flex-wrap:wrap}
+  .serieadd{width:100%;margin-top:9px;padding:10px;border-radius:11px;border:1px dashed var(--line);
+    background:transparent;color:var(--muted);font-family:inherit;font-size:13px;cursor:pointer}
+  /* --- plano do método (tela do aluno) --- */
+  .exseries.met{color:var(--cyan-2);border-color:rgba(0,201,204,.4);background:rgba(0,201,204,.1);font-weight:700}
+  .metplano{display:flex;flex-direction:column;gap:5px;margin:10px 0 2px;padding:10px;border-radius:12px;
+    background:var(--surface-2);border:1px solid var(--line)}
+  .mpserie{display:flex;align-items:flex-start;gap:9px;padding:7px 8px;border-radius:9px;background:var(--bg)}
+  .mpnum{flex:0 0 auto;min-width:24px;font-size:11.5px;font-weight:700;color:var(--cyan-2);padding-top:2px}
+  .mpbody{flex:1;min-width:0}
+  .mplinha{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .mpreps{font-size:13.5px;font-weight:600;color:var(--text)}
+  .mptag{font-size:10.5px;font-weight:600;color:var(--muted);background:var(--surface-2);
+    border-radius:999px;padding:2px 8px}
+  .mpblocos{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:5px}
+  .mpbl{font-size:11.5px;font-weight:600;color:var(--cyan-2);background:rgba(0,201,204,.1);
+    border:1px solid rgba(0,201,204,.3);border-radius:7px;padding:2px 8px}
+  .mppausa{font-size:10.5px;color:#ddff00}
+  .mpext{margin-top:5px;font-size:11.5px;font-weight:600;color:#ffc48a}
+  .mpdesc{flex:0 0 auto;font-size:11px;font-weight:600;color:var(--muted);padding-top:3px}
+  .exobs{display:flex;gap:9px;align-items:flex-start;margin:10px 0 2px;padding:11px 13px;border-radius:11px;
+    background:rgba(221,255,0,.06);border:1px solid rgba(221,255,0,.28);border-left:3px solid #ddff00}
+  .exobs .eoico{flex:0 0 auto;font-size:13px;line-height:1.5}
+  .exobs .eotxt{font-size:13px;line-height:1.5;color:var(--text);white-space:pre-wrap;min-width:0}
+  .obstext{width:100%;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;
+    color:var(--text);font-family:inherit;font-size:14px;line-height:1.5;resize:vertical;min-height:76px}
+  .obstext:focus{outline:none;border-color:var(--cyan)}
+  .obscount{float:right;font-size:11px;font-weight:500;color:var(--muted)}
   .varbloco{margin:2px 0 16px;padding:12px 13px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line)}
   .varhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
   .varlab{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
@@ -530,7 +610,7 @@ async function fetchDbFromSupabase(){
     const [rAlunos, rTreinos, rEx, rLogs, rSess] = await Promise.all([
       sb.from('alunos').select('id,nome,foto_url,academia').order('nome'),
       sb.from('treinos').select('id,aluno_id,nome,ordem,concluido_data').order('ordem'),
-      sb.from('exercicios').select('id,treino_id,nome,series,cardapio_id,ordem,done_date,descanso,filmar').order('ordem'),
+      sb.from('exercicios').select('id,treino_id,nome,series,cardapio_id,ordem,done_date,descanso,filmar,observacao,metodo').order('ordem'),
       sb.from('logs').select('id,exercicio_id,data,carga,reps,intensidade,dor,variante').order('data'),
       sb.from('sessoes').select('id,aluno_id,treino_id,data,origem').order('data')
     ]);
@@ -548,7 +628,7 @@ async function fetchDbFromSupabase(){
     (rEx.data||[]).forEach(e=>{
       (exPorTreino[e.treino_id]=exPorTreino[e.treino_id]||[]).push({
         id:e.id, name:e.nome, series:e.series||'',
-        exerciseId:e.cardapio_id, doneDate:e.done_date, descanso:e.descanso||'', filmar:!!e.filmar,
+        exerciseId:e.cardapio_id, doneDate:e.done_date, descanso:e.descanso||'', filmar:!!e.filmar, observacao:e.observacao||'', metodo:e.metodo||null,
         logs: logsPorEx[e.id]||[]
       });
     });
@@ -573,6 +653,20 @@ async function fetchDbFromSupabase(){
 }
 
 /* extrai o nº de séries de "3 × 8 a 12" -> 3 */
+/* total de séries considerando método (quando houver) */
+function totalSeries(ex){
+  if(ex && ex.metodo && ex.metodo.series && ex.metodo.series.length) return ex.metodo.series.length;
+  return numSeries(ex?ex.series:'');
+}
+/* descanso da série que ACABOU de ser feita (índice 0-based) */
+function descansoDaSerie(ex,idx){
+  if(ex && ex.metodo && ex.metodo.series && ex.metodo.series.length){
+    const sr=ex.metodo.series[Math.min(idx,ex.metodo.series.length-1)];
+    if(sr && sr.descanso) return sr.descanso;
+    return '';
+  }
+  return ex?ex.descanso:'';
+}
 function numSeries(series){
   const m=String(series||'').match(/^\s*(\d+)\s*[x×]/i);
   if(m){ const n=parseInt(m[1],10); if(n>0 && n<=20) return n; }
@@ -674,7 +768,7 @@ function buildEstruturaSnapshot(db){
         id:t.id, nome:t.nome,
         exercises:(t.exercises||[]).map(ex=>({
           id:ex.id, name:ex.name, series:ex.series,
-          filmar:!!ex.filmar,
+          filmar:!!ex.filmar, observacao:ex.observacao||'', metodo:ex.metodo||null,
           logs:(ex.logs||[]).map(l=>({id:l.id,date:l.date,carga:l.carga,reps:l.reps,intensidade:l.intensidade,dor:l.dor,variante:l.variante||''}))
           // doneDate propositalmente omitido (efêmero do dia)
         }))
@@ -1208,6 +1302,62 @@ function Scale({value,onChange,leftLabel,rightLabel}){
     <div className="scalelabel"><span>{leftLabel}</span><span>{rightLabel}</span></div>
   </React.Fragment>);
 }
+/* ---- Templates de método (fase 1: constantes no código) ----
+   Estrutura: {nome, tipo:'uniforme'|'porSerie', series:[{reps,descanso,carga?,cadencia?,blocos?,extensao?,aberto?}]} */
+const SERIE_VAZIA={reps:'',descanso:''};
+function serieRep(n,base){ const out=[]; for(let i=0;i<n;i++) out.push(Object.assign({},SERIE_VAZIA,base)); return out; }
+const METODOS_TEMPLATE=[
+  {nome:'Pirâmide Crescente', tipo:'porSerie', series:[
+    {reps:'12 a 15',descanso:'60s'},{reps:'10 a 12',descanso:'90s'},
+    {reps:'8 a 10',descanso:'90s'},{reps:'6 a 8',descanso:'120s',carga:'mais peso'}]},
+  {nome:'Pirâmide + 1 drop na última', tipo:'porSerie', series:[
+    {reps:'12 a 15',descanso:'60s'},{reps:'10 a 12',descanso:'90s'},
+    {reps:'8 a 10',descanso:'90s'},
+    {reps:'6 a 8',descanso:'120s',carga:'mais peso',
+     extensao:[{tipo:'drop',reducao:'20 a 30%',reps:'até fadigar'}]}]},
+  {nome:'Degrau Acima', tipo:'porSerie', series:[
+    {reps:'12 a 15',descanso:'60s',carga:'menos peso'},{reps:'12 a 15',descanso:'60s',carga:'menos peso'},
+    {reps:'6 a 8',descanso:'90s',carga:'mais peso'},{reps:'6 a 8',descanso:'90s',carga:'mais peso'}]},
+  {nome:'Degrau Sobe e Desce', tipo:'porSerie', series:[
+    {reps:'12 a 15',descanso:'60s',carga:'mais leve'},{reps:'6 a 10',descanso:'90s',carga:'mais peso'},
+    {reps:'6 a 10',descanso:'90s',carga:'mais peso'},{reps:'até a falha',descanso:'',carga:'mais leve',aberto:true}]},
+  {nome:'Intensidade Alternada', tipo:'porSerie', series:[
+    {reps:'6 a 8',descanso:'90s',carga:'mais peso'},{reps:'12 a 15',descanso:'60s',carga:'menos peso'},
+    {reps:'6 a 8',descanso:'90s',carga:'mais peso'},{reps:'12 a 15',descanso:'60s',carga:'menos peso'}]},
+  {nome:'Cluster 15" (8+8)', tipo:'uniforme', series:serieRep(3,
+    {reps:'16 (8+8)',descanso:'60s',blocos:[{reps:'8',pausa:'15s'},{reps:'8'}]})},
+  {nome:'Cluster 10" (3 blocos)', tipo:'uniforme', series:serieRep(3,
+    {reps:'15 (5+5+5)',descanso:'60 a 90s',blocos:[{reps:'5',pausa:'10s'},{reps:'5',pausa:'10s'},{reps:'5'}]})},
+  {nome:'Drop na última', tipo:'porSerie', series:[
+    {reps:'8 a 12',descanso:'90s'},{reps:'8 a 12',descanso:'90s'},
+    {reps:'8 a 12',descanso:'90s',extensao:[{tipo:'drop',reducao:'20 a 30%',reps:'até fadigar'}]}]},
+  {nome:'2 drops na última', tipo:'porSerie', series:[
+    {reps:'8 a 12',descanso:'90s'},{reps:'8 a 12',descanso:'90s'},
+    {reps:'8 a 12',descanso:'90s',extensao:[
+      {tipo:'drop',reducao:'20 a 30%',reps:'até fadigar'},
+      {tipo:'drop',reducao:'20 a 30%',reps:'até fadigar'}]}]},
+  {nome:'Backoff nas 2 últimas', tipo:'porSerie', series:[
+    {reps:'8 a 12',descanso:'90s'},{reps:'8 a 12',descanso:'90s'},
+    {reps:'6 a 8',descanso:'90s',extensao:[{tipo:'backoff',reducao:'30%',reps:'8 a 12',pausa:'30 a 40s'}]},
+    {reps:'6 a 8',descanso:'90s',extensao:[{tipo:'backoff',reducao:'30%',reps:'8 a 12',pausa:'30 a 40s'}]}]},
+  {nome:'GVT (10x10)', tipo:'uniforme', series:serieRep(10,{reps:'10',descanso:'60s'})},
+  {nome:'FST-7', tipo:'uniforme', series:serieRep(7,{reps:'8 a 12',descanso:'30s'})},
+  {nome:'Super Slow', tipo:'uniforme', series:serieRep(3,{reps:'8 a 12',descanso:'90s',cadencia:'5s descida / 5s subida'})},
+  {nome:'2s/iso', tipo:'uniforme', series:serieRep(3,{reps:'10 a 12',descanso:'75s',cadencia:'segura 2s em contração'})},
+  {nome:'Explosão', tipo:'uniforme', series:serieRep(3,{reps:'12 a 15',descanso:'60s',cadencia:'1s descida / 1s subida'})},
+  {nome:'Série infinita (unilateral)', tipo:'uniforme', series:serieRep(3,
+    {reps:'alterna os lados até a fadiga',descanso:'90s',aberto:true})},
+];
+const EXT_LABEL={drop:'Drop',backoff:'Back-off',iso:'Iso',parciais:'Parciais'};
+
+/* resumo curto do método para exibir no card */
+function resumoMetodo(m){
+  if(!m||!m.series||!m.series.length) return '';
+  const n=m.series.length;
+  const iguais=m.series.every(x=>x.reps===m.series[0].reps && x.descanso===m.series[0].descanso);
+  return iguais ? (n+' × '+(m.series[0].reps||'—')) : (n+' séries · varia');
+}
+
 function ExerciseSheet({initial,onSave,onClose}){
   const [name,setName]=useState(initial?initial.name:'');
   const [exerciseId,setExerciseId]=useState(initial&&initial.exerciseId!=null?initial.exerciseId:null);
@@ -1230,6 +1380,31 @@ function ExerciseSheet({initial,onSave,onClose}){
   const [descanso,setDescanso]=useState(initial&&initial.descanso?initial.descanso:'');
   const [descManual,setDescManual]=useState(false);
   const [filmar,setFilmar]=useState(initial?!!initial.filmar:false);
+  const [observacao,setObservacao]=useState(initial?(initial.observacao||''):'');
+  const [metodo,setMetodo]=useState(initial&&initial.metodo?initial.metodo:null);
+  const [escolhendoMet,setEscolhendoMet]=useState(false);
+  const [expSerie,setExpSerie]=useState(null); // índice da série com detalhes abertos
+  const metUniforme = metodo && metodo.tipo==='uniforme';
+  const aplicarTemplate=(t)=>{
+    setMetodo(JSON.parse(JSON.stringify(t)));
+    setEscolhendoMet(false); setExpSerie(null);
+  };
+  const setSerie=(i,patch)=>setMetodo(m=>({...m,series:m.series.map((x,k)=>k===i?{...x,...patch}:x)}));
+  const setTodasSeries=(patch)=>setMetodo(m=>({...m,series:m.series.map(x=>({...x,...patch}))}));
+  const setQtdSeries=(n)=>setMetodo(m=>{
+    const q=Math.max(1,Math.min(20,parseInt(n,10)||1));
+    const base=m.series[0]||SERIE_VAZIA; const out=[];
+    for(let i=0;i<q;i++) out.push(m.series[i]?m.series[i]:JSON.parse(JSON.stringify(base)));
+    return {...m,series:out};
+  });
+  const addSerie=()=>setMetodo(m=>({...m,series:[...m.series,JSON.parse(JSON.stringify(m.series[m.series.length-1]||SERIE_VAZIA))]}));
+  const delSerie=(i)=>setMetodo(m=>m.series.length<=1?m:{...m,series:m.series.filter((x,k)=>k!==i)});
+  const addExt=(i,tipo)=>setSerie(i,{extensao:[...((metodo.series[i].extensao)||[]),
+    {tipo, reducao:tipo==='backoff'?'30%':'20 a 30%', reps:'até fadigar'}]});
+  const delExt=(i,k)=>setSerie(i,{extensao:(metodo.series[i].extensao||[]).filter((x,j)=>j!==k)});
+  const addBloco=(i)=>setSerie(i,{blocos:[...((metodo.series[i].blocos)||[]),{reps:'',pausa:'10s'}]});
+  const delBloco=(i,k)=>setSerie(i,{blocos:(metodo.series[i].blocos||[]).filter((x,j)=>j!==k)});
+  const setBloco=(i,k,patch)=>setSerie(i,{blocos:(metodo.series[i].blocos||[]).map((b,j)=>j===k?{...b,...patch}:b)});
   // busca no catálogo real (cache do Cardápio); fallback pro exemplo se cache vazio
   const fonte = catalogo.length>0 ? catalogo.map(c=>({id:c.id,nome:c.nome,grupo:c.grupo})) : CATALOGO_EXEMPLO.map(n=>({id:null,nome:n,grupo:''}));
   // quebra o texto em palavras e casa TODAS elas em qualquer ordem (ignora acento)
@@ -1252,7 +1427,7 @@ function ExerciseSheet({initial,onSave,onClose}){
   const save=()=>{
     if(!name.trim())return;
     const combined = (sets.trim()&&reps.trim()) ? `${sets.trim()} × ${reps.trim()}` : (sets.trim()||reps.trim()||'');
-    onSave({name:name.trim(), series:combined, exerciseId, descanso:descanso.trim(), filmar});
+    onSave({name:name.trim(), series:combined, exerciseId, descanso:descanso.trim(), filmar, observacao:observacao.trim(), metodo});
   };
   return (<div className="backdrop" onClick={onClose}>
     <div className="sheet" onClick={e=>e.stopPropagation()}>
@@ -1270,7 +1445,102 @@ function ExerciseSheet({initial,onSave,onClose}){
         {showAuto && name.trim().length>=2 && sugestoes.length===0 && !catVazio &&
           <div className="autolist"><div className="hint">Nenhum no Cardápio — será salvo como texto livre ✍️</div></div>}
       </div>
-      <div className="field"><label>Séries</label>
+      <div className="field">
+        <label>Método</label>
+        {!metodo
+          ? <div className="metrow">
+              <span className="metatual">Padrão · séries iguais</span>
+              <button type="button" className="metbtn" onClick={()=>setEscolhendoMet(true)}>Escolher método</button>
+            </div>
+          : <div className="metrow">
+              <span className="metatual on">🔺 {metodo.nome}</span>
+              <button type="button" className="metbtn" onClick={()=>setEscolhendoMet(true)}>Trocar</button>
+              <button type="button" className="metbtn del" onClick={()=>{setMetodo(null);setExpSerie(null);}}>Remover</button>
+            </div>}
+        {escolhendoMet && <div className="metlista">
+          {METODOS_TEMPLATE.map(t=>(
+            <button type="button" key={t.nome} className="metopt" onClick={()=>aplicarTemplate(t)}>
+              <span className="monome">{t.nome}</span>
+              <span className="modesc">{t.series.length} séries · {t.tipo==='uniforme'?'iguais':'varia por série'}</span>
+            </button>
+          ))}
+          <button type="button" className="metopt novo" onClick={()=>aplicarTemplate(
+            {nome:'Personalizado', tipo:'porSerie', series:serieRep(3,{reps:'8 a 12',descanso:'90s'})})}>
+            <span className="monome">✎ Montar do zero</span>
+            <span className="modesc">3 séries em branco para editar</span>
+          </button>
+          <button type="button" className="metcancel" onClick={()=>setEscolhendoMet(false)}>cancelar</button>
+        </div>}
+      </div>
+      {metodo && <div className="field">
+        <label>Prescrição série a série</label>
+        <div className="metmodo">
+          <button type="button" className={'mmtab'+(metUniforme?' sel':'')}
+            onClick={()=>setMetodo(m=>({...m,tipo:'uniforme',series:m.series.map(()=>JSON.parse(JSON.stringify(m.series[0])))}))}>Todas iguais</button>
+          <button type="button" className={'mmtab'+(!metUniforme?' sel':'')}
+            onClick={()=>setMetodo(m=>({...m,tipo:'porSerie'}))}>Cada série diferente</button>
+        </div>
+        {metUniforme && <div className="mmqtd">
+          <span>Nº de séries</span>
+          <input type="number" min="1" max="20" value={metodo.series.length} onChange={e=>setQtdSeries(e.target.value)}/>
+        </div>}
+        <div className="serielist">
+          {(metUniforme?metodo.series.slice(0,1):metodo.series).map((sr,i)=>(
+            <div className="serieitem" key={i}>
+              <div className="sihead">
+                <span className="sinum">{metUniforme?'Todas':(i+1)+'ª'}</span>
+                <input className="sireps" value={sr.reps} placeholder="reps (ex: 8 a 12)"
+                  onChange={e=>metUniforme?setTodasSeries({reps:e.target.value}):setSerie(i,{reps:e.target.value})}/>
+                <input className="sidesc" value={sr.descanso} placeholder="desc"
+                  onChange={e=>metUniforme?setTodasSeries({descanso:e.target.value}):setSerie(i,{descanso:e.target.value})}/>
+                <button type="button" className="simore" onClick={()=>setExpSerie(expSerie===i?null:i)}>⋯</button>
+                {!metUniforme && metodo.series.length>1 &&
+                  <button type="button" className="sidel" onClick={()=>delSerie(i)}>✕</button>}
+              </div>
+              {(sr.carga||sr.cadencia||(sr.blocos||[]).length>0||(sr.extensao||[]).length>0) && expSerie!==i &&
+                <div className="siresumo">
+                  {sr.carga && <span className="sitag">⚖ {sr.carga}</span>}
+                  {sr.cadencia && <span className="sitag">⏱ {sr.cadencia}</span>}
+                  {(sr.blocos||[]).length>0 && <span className="sitag">▦ {sr.blocos.length} blocos</span>}
+                  {(sr.extensao||[]).map((x,k)=><span className="sitag ext" key={k}>↓ {EXT_LABEL[x.tipo]||x.tipo}</span>)}
+                </div>}
+              {expSerie===i && <div className="sidetalhe">
+                <div className="sdrow"><span>Carga</span>
+                  <input value={sr.carga||''} placeholder="ex: mais peso / -20%"
+                    onChange={e=>metUniforme?setTodasSeries({carga:e.target.value}):setSerie(i,{carga:e.target.value})}/></div>
+                <div className="sdrow"><span>Cadência</span>
+                  <input value={sr.cadencia||''} placeholder="ex: 5s desce / 5s sobe"
+                    onChange={e=>metUniforme?setTodasSeries({cadencia:e.target.value}):setSerie(i,{cadencia:e.target.value})}/></div>
+                <div className="sdsub">Blocos dentro da série <span className="sdhint">(cluster)</span></div>
+                {(sr.blocos||[]).map((b,k)=>(
+                  <div className="sdrow bl" key={k}>
+                    <input value={b.reps} placeholder="reps" onChange={e=>setBloco(i,k,{reps:e.target.value})}/>
+                    <input value={b.pausa||''} placeholder="pausa" onChange={e=>setBloco(i,k,{pausa:e.target.value})}/>
+                    <button type="button" onClick={()=>delBloco(i,k)}>✕</button>
+                  </div>))}
+                <button type="button" className="sdadd" onClick={()=>addBloco(i)}>+ bloco</button>
+                <div className="sdsub">Depois das repetições <span className="sdhint">(drop / back-off)</span></div>
+                {(sr.extensao||[]).map((x,k)=>(
+                  <div className="sdrow bl" key={k}>
+                    <span className="sdext">{EXT_LABEL[x.tipo]||x.tipo}</span>
+                    <input value={x.reducao||''} placeholder="redução"
+                      onChange={e=>setSerie(i,{extensao:(sr.extensao||[]).map((y,j)=>j===k?{...y,reducao:e.target.value}:y)})}/>
+                    <input value={x.reps||''} placeholder="reps"
+                      onChange={e=>setSerie(i,{extensao:(sr.extensao||[]).map((y,j)=>j===k?{...y,reps:e.target.value}:y)})}/>
+                    <button type="button" onClick={()=>delExt(i,k)}>✕</button>
+                  </div>))}
+                <div className="sdbtns">
+                  <button type="button" className="sdadd" onClick={()=>addExt(i,'drop')}>+ drop</button>
+                  <button type="button" className="sdadd" onClick={()=>addExt(i,'backoff')}>+ back-off</button>
+                  <button type="button" className="sdadd" onClick={()=>addExt(i,'iso')}>+ iso</button>
+                </div>
+              </div>}
+            </div>
+          ))}
+        </div>
+        {!metUniforme && <button type="button" className="serieadd" onClick={addSerie}>+ série</button>}
+      </div>}
+      {!metodo && <div className="field"><label>Séries</label>
         {setsManual
           ? <input value={sets} inputMode="numeric" onChange={e=>setSets(e.target.value)} onBlur={()=>setSetsManual(false)} placeholder="Nº de séries" autoFocus/>
           : <div className="pickgrid s6">
@@ -1279,8 +1549,8 @@ function ExerciseSheet({initial,onSave,onClose}){
               ))}
               <button type="button" className="pcell more" onClick={()=>setSetsManual(true)}>⌨</button>
             </div>}
-      </div>
-      <div className="field"><label>Repetições</label>
+      </div>}
+      {!metodo && <div className="field"><label>Repetições</label>
         {repsManual
           ? <input value={reps} onChange={e=>setReps(e.target.value)} onBlur={()=>setRepsManual(false)} placeholder="Ex: 8 a 12" autoFocus/>
           : <div className="pickgrid s3">
@@ -1289,8 +1559,8 @@ function ExerciseSheet({initial,onSave,onClose}){
               ))}
               <button type="button" className="pcell more" onClick={()=>setRepsManual(true)}>⌨ digitar</button>
             </div>}
-      </div>
-      <div className="field"><label>Descanso (segundos)</label>
+      </div>}
+      {!metodo && <div className="field"><label>Descanso (segundos)</label>
         {descManual
           ? <input value={descanso} onChange={e=>setDescanso(e.target.value)} onBlur={()=>setDescManual(false)} placeholder="Ex: 45~60 ou 60" autoFocus/>
           : <div className="pickgrid s3">
@@ -1299,6 +1569,12 @@ function ExerciseSheet({initial,onSave,onClose}){
               ))}
               <button type="button" className="pcell more" onClick={()=>setDescManual(true)}>⌨ digitar</button>
             </div>}
+      </div>}
+      <div className="field">
+        <label>Observação para o aluno <span className="obscount">{observacao.length}/500</span></label>
+        <textarea className="obstext" rows={3} maxLength={500} value={observacao}
+          onChange={e=>setObservacao(e.target.value)}
+          placeholder="Ex: pirâmide — aumente a carga a cada série (12/10/8/6). Segure 2s embaixo."/>
       </div>
       <div className="field">
         <button type="button" className={'filmtoggle'+(filmar?' on':'')} onClick={()=>setFilmar(f=>!f)}>
@@ -1543,21 +1819,23 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
   const updExercises=(exs)=>setDb({...db,students:db.students.map(x=>x.id===studentId?{...x,treinos:x.treinos.map(tt=>tt.id===treinoId?{...tt,exercises:exs}:tt)}:x)});
   const saveEx=(data)=>{
     if(editingEx==='new'){
-      const novo={id:uid(),name:data.name,series:data.series,exerciseId:data.exerciseId,descanso:data.descanso,filmar:!!data.filmar,logs:[]};
+      const novo={id:uid(),name:data.name,series:data.series,exerciseId:data.exerciseId,descanso:data.descanso,filmar:!!data.filmar,observacao:data.observacao||'',metodo:data.metodo||null,logs:[]};
       updExercises([...(t.exercises||[]),novo]);
       enqueueOp({tipo:'insert',tabela:'exercicios',dados:{
         id:novo.id, treino_id:treinoId, nome:novo.name, series:novo.series||null,
         cardapio_id:novo.exerciseId!=null?novo.exerciseId:null, ordem:(t.exercises||[]).length,
-        descanso:novo.descanso||null, filmar:!!novo.filmar
+        descanso:novo.descanso||null, filmar:!!novo.filmar, observacao:novo.observacao||null,
+        metodo:novo.metodo||null
       }});
       const herda=lastLogOfExercise(s,data.name,data.exerciseId);
       flash(herda?('Adicionado — última carga '+herda.carga+' disponível ✓'):'Exercício adicionado ✓');
     }else{
-      updExercises(t.exercises.map(e=>e.id===editingEx.id?{...e,name:data.name,series:data.series,exerciseId:data.exerciseId,descanso:data.descanso,filmar:!!data.filmar}:e));
+      updExercises(t.exercises.map(e=>e.id===editingEx.id?{...e,name:data.name,series:data.series,exerciseId:data.exerciseId,descanso:data.descanso,filmar:!!data.filmar,observacao:data.observacao||'',metodo:data.metodo||null}:e));
       enqueueOp({tipo:'update',tabela:'exercicios',id:editingEx.id,dados:{
         nome:data.name, series:data.series||null,
         cardapio_id:data.exerciseId!=null?data.exerciseId:null,
-        descanso:data.descanso||null, filmar:!!data.filmar
+        descanso:data.descanso||null, filmar:!!data.filmar, observacao:data.observacao||null,
+        metodo:data.metodo||null
       }});
       flash('Atualizado ✓');
     }
@@ -1640,14 +1918,16 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
   };
   // progresso de séries — vem do App (sobrevive à navegação)
   const avancarSerie=(ex)=>{
-    const tot=numSeries(ex.series);
+    const tot=totalSeries(ex);
+    let feitaAgora=0;
     setSeriesFeitas(m=>{
       const atual=m[ex.id]||0;
       const novo=Math.min(tot, atual+1);
+      feitaAgora=novo;
       return {...m,[ex.id]:novo};
     });
-    // inicia o descanso automaticamente, se houver prescrição
-    const f=parseDescanso(ex.descanso);
+    // descanso da série recém-concluída (com método, varia série a série)
+    const f=parseDescanso(descansoDaSerie(ex, Math.max(0,feitaAgora-1)));
     if(f && timer) timer.start(f, ex.name);
   };
   const zerarSerie=(exId)=>setSeriesFeitas(m=>({...m,[exId]:0}));
@@ -1663,7 +1943,7 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
         const last=lastLogOfExercise(s,ex.name,ex.exerciseId);
         const total=(t.exercises||[]).length;
         const done = ex.doneDate===todayISO();
-        const totSeries = numSeries(ex.series);
+        const totSeries = totalSeries(ex);
         const concluido = totSeries ? ((seriesFeitas[ex.id]||0)>=totSeries) : done;
         return (<div key={ex.id} className={'exrow'+(concluido?' done':'')}>
           <div className="exhead">
@@ -1674,15 +1954,18 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
             <div className="exinfo">
               <div className="exname">{ex.name}</div>
               <div className="exmeta">
-                {ex.series && <span className="exseries">{ex.series}</span>}
+                {ex.metodo
+                  ? <span className="exseries met">🔺 {ex.metodo.nome}</span>
+                  : (ex.series && <span className="exseries">{ex.series}</span>)}
                 {ex.filmar && <span className="exfilm">🎥 Recomendado Filmar</span>}
-                {parseDescanso(ex.descanso) && <button className="exrest" onClick={()=>timer.start(parseDescanso(ex.descanso), ex.name)}>
-                  🕐 Descansar <span className="exresth">{ex.descanso.replace('~','–')}s</span>
-                </button>}
+                {(()=>{ const d=descansoDaSerie(ex, seriesFeitas[ex.id]||0); const f=parseDescanso(d);
+                  return f ? <button className="exrest" onClick={()=>timer.start(f, ex.name)}>
+                    🕐 Descansar <span className="exresth">{String(d).replace('~','–')}</span>
+                  </button> : null; })()}
               </div>
             </div>
-            {numSeries(ex.series)
-              ? <SerieRing total={numSeries(ex.series)} feitas={seriesFeitas[ex.id]||0}
+            {totalSeries(ex)
+              ? <SerieRing total={totalSeries(ex)} feitas={seriesFeitas[ex.id]||0}
                   onAvancar={()=>avancarSerie(ex)} onZerar={()=>zerarSerie(ex.id)}/>
               : <button className={'donecheck'+(done?' on':'')} onClick={()=>toggleDone(ex.id)} aria-label={done?'Marcar como não feito':'Marcar como feito'}>
                   <span className="dcicon">{done?'✓':''}</span>
@@ -1698,6 +1981,32 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
               {last.intensidade!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(last.intensidade)}}></span><span className="k">Int</span>{last.intensidade}</span>}
               {last.dor!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(last.dor)}}></span><span className="k">Dor art.</span>{last.dor}</span>}
             </React.Fragment> : <span className="lastnote">Ainda sem registro — toque em “Registrar Carga”.</span>}
+            {ex.metodo && <div className="metplano">
+              {ex.metodo.series.map((sr,i)=>(
+                <div className="mpserie" key={i}>
+                  <span className="mpnum">{i+1}ª</span>
+                  <div className="mpbody">
+                    <div className="mplinha">
+                      <span className="mpreps">{sr.reps||'—'}</span>
+                      {sr.carga && <span className="mptag">⚖ {sr.carga}</span>}
+                      {sr.cadencia && <span className="mptag">⏱ {sr.cadencia}</span>}
+                    </div>
+                    {(sr.blocos||[]).length>0 && <div className="mpblocos">
+                      {sr.blocos.map((b,k)=>(<React.Fragment key={k}>
+                        <span className="mpbl">{b.reps} reps</span>
+                        {b.pausa && <span className="mppausa">↺ {b.pausa}</span>}
+                      </React.Fragment>))}
+                    </div>}
+                    {(sr.extensao||[]).map((x,k)=>(
+                      <div className="mpext" key={k}>↓ {EXT_LABEL[x.tipo]||x.tipo}
+                        {x.reducao?' · reduz '+x.reducao:''}{x.reps?' · '+x.reps:''}</div>
+                    ))}
+                  </div>
+                  {sr.descanso && <span className="mpdesc">{sr.descanso}</span>}
+                </div>
+              ))}
+            </div>}
+            {ex.observacao && <div className="exobs"><span className="eoico">💬</span><span className="eotxt">{ex.observacao}</span></div>}
           </div>
           <div className="exactions">
             <button className="reg" onClick={()=>setRegistering(ex)}>Registrar Carga</button>
@@ -1765,9 +2074,14 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
     .map(v=>v===baseOrig?baseVar:v)
     .filter((v,i,a)=>a.indexOf(v)===i);
   const temVarias=varsUsadas.length>1;
-  const [varSel,setVarSel]=useState(null); // null = todas
-  const entriesFiltradas=(varSel==null)?entries
-    :entries.filter(e=>(((e.variante||'').trim()||baseVar)===varSel));
+  // sempre um equipamento selecionado — comparar cargas de máquinas diferentes não faz sentido
+  const varDoUltimoLog=(()=>{
+    for(let i=entries.length-1;i>=0;i--){ if(entries[i].carga) return ((entries[i].variante||'').trim()||baseVar); }
+    return varsUsadas[0]||baseVar;
+  })();
+  const [varSel,setVarSel]=useState(varDoUltimoLog);
+  const varAtiva=varsUsadas.includes(varSel)?varSel:(varsUsadas[0]||baseVar);
+  const entriesFiltradas=entries.filter(e=>((e.variante||'').trim()||baseVar)===varAtiva);
   const chartData=entriesFiltradas.map(e=>{
     const c=numFrom(e.carga), r=numFrom(e.reps);
     return {date:fmtDate(e.date), carga:c, volume:(c!=null&&r!=null)?c*r:null,
@@ -1786,7 +2100,7 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
       exercises:t.exercises.map(ex=>norm(ex.name)===norm(exName)?{...ex,
         logs:(ex.logs||[]).map(l=>alvo(l)?{...l,variante:novo}:l)}:ex)}))})});
     ids.forEach(id=>enqueueOp({tipo:'update',tabela:'logs',id,dados:{variante:novo}}));
-    if(varSel===antigo) setVarSel(novo);
+    if(varAtiva===antigo) setVarSel(novo);
   };
   const editLogSave=(logId,data)=>{
     setDb({...db,students:db.students.map(st=>st.id!==studentId?st:{...st,treinos:st.treinos.map(t=>({...t,exercises:t.exercises.map(ex=>norm(ex.name)===norm(exName)?{...ex,logs:(ex.logs||[]).map(l=>l.id===logId?{...l,...data}:l)}:ex)}))})});
@@ -1851,9 +2165,8 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
     <TopBar title={exName} sub={'Evolução · '+s.name} onBack={()=>nav(back||{name:'student',studentId})}/>
     <div className="screen">
       {temVarias && <div className="varfiltro">
-        <button type="button" className={'varchip'+(varSel==null?' sel':'')} onClick={()=>setVarSel(null)}>Todos</button>
         {varsUsadas.map(v=>(
-          <button type="button" key={v} className={'varchip'+(varSel===v?' sel':'')} onClick={()=>setVarSel(v)}>{v}</button>
+          <button type="button" key={v} className={'varchip'+(varAtiva===v?' sel':'')} onClick={()=>setVarSel(v)}>{v}</button>
         ))}
       </div>}
       {chart}

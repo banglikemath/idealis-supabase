@@ -930,6 +930,10 @@ function LogoIdealis({size}){
     dangerouslySetInnerHTML={{__html: LOGO_SVG}}/>);
 }
 /* Nome da 1ª variante: usa a academia do aluno quando existir */
+/* chave do apelido da variante base: precisa ser por ALUNO + EXERCÍCIO */
+function chaveVarBase(alunoId, exName){
+  return 'idealis_var_base_'+String(alunoId||'')+'_'+norm(exName||'');
+}
 function varPadrao(academia){
   const a=String(academia||'').trim();
   return a ? ('Máq. '+a) : 'Máq. Principal';
@@ -1300,10 +1304,18 @@ function ExerciseSheet({initial,onSave,onClose}){
         <button className="btn" onClick={save}>Salvar</button></div>
     </div></div>);
 }
-function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico}){
+function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico,onRenomearVariante,alunoId}){
   const isEdit=!!editLog;
-  const base=varPadrao(academia);
-  const [variantes,setVariantes]=useState(()=>variantesDoHistorico(historico,academia));
+  const baseOriginal=varPadrao(academia);
+  // se a base foi renomeada mas ainda não existe log para materializar, guarda o apelido
+  const [baseApelido,setBaseApelido]=useState(()=>{
+    try{ return (LS_OK && window.localStorage.getItem(chaveVarBase(alunoId,exName)))||''; }catch(e){ return ''; }
+  });
+  const base=baseApelido||baseOriginal;
+  const [variantes,setVariantes]=useState(()=>{
+    const l=variantesDoHistorico(historico,academia);
+    return baseApelido ? l.map(v=>v===baseOriginal?baseApelido:v) : l;
+  });
   const [variante,setVariante]=useState(isEdit?((editLog.variante||'').trim()||base):base);
   const [novaVar,setNovaVar]=useState(null); // string em edição, ou null
   const [ajuda,setAjuda]=useState(false);
@@ -1363,9 +1375,17 @@ function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico
   const confirmarRenome=()=>{
     const nome=String(renomeando&&renomeando.novo||'').trim();
     const antigo=renomeando&&renomeando.antigo;
-    if(!nome||!antigo){ setRenomeando(null); return; }
+    if(!nome||!antigo||nome===antigo){ setRenomeando(null); return; }
+    if(variantes.includes(nome)){ setRenomeando(null); return; } // já existe, evita duplicar
     setVariantes(variantes.map(v=>v===antigo?nome:v));
     if(variante===antigo) setVariante(nome);
+    // grava o novo nome nos logs — inclusive nos que estavam sem variante (base),
+    // senão a variante base "renasce" ao reabrir a tela
+    if(antigo===base){
+      setBaseApelido(nome);
+      try{ if(LS_OK) window.localStorage.setItem(chaveVarBase(alunoId,exName), nome); }catch(e){}
+    }
+    if(onRenomearVariante) onRenomearVariante(antigo, nome, antigo===base);
     setRenomeando(null);
   };
   return (<div className="backdrop" onClick={onClose}>
@@ -1555,6 +1575,22 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
     enqueueOp({tipo:'update',tabela:'exercicios',id:arr[idx].id,dados:{ordem:idx}});
     enqueueOp({tipo:'update',tabela:'exercicios',id:arr[alvo].id,dados:{ordem:alvo}});
   };
+  /* Renomeia uma variante em TODOS os logs do exercício.
+     ehBase=true -> alcança também os logs sem variante (null). */
+  const renomearVarTreino=(ex,antigo,novo,ehBase)=>{
+    const alvo=(l)=>{ const v=(l.variante||'').trim(); return ehBase ? (v===''||v===antigo) : (v===antigo); };
+    // alcança o exercício em TODOS os treinos do aluno (mesmo nome/catálogo),
+    // para o rename sobreviver à troca de fase
+    const mesmoEx=(e)=>(ex.exerciseId!=null && e.exerciseId!=null)
+      ? (e.exerciseId===ex.exerciseId) : (norm(e.name)===norm(ex.name));
+    const ids=allLogsOfExercise(s,ex.name,ex.exerciseId).filter(alvo).map(l=>l.id);
+    if(!ids.length) return;
+    setDb({...db,students:db.students.map(st=>st.id!==studentId?st:{...st,
+      treinos:st.treinos.map(tt=>({...tt,
+        exercises:(tt.exercises||[]).map(e=>mesmoEx(e)?{...e,
+          logs:(e.logs||[]).map(l=>alvo(l)?{...l,variante:novo}:l)}:e)}))})});
+    ids.forEach(id=>enqueueOp({tipo:'update',tabela:'logs',id,dados:{variante:novo}}));
+  };
   const saveLog=(data)=>{
     const ex=registering;
     const log={id:uid(),date:todayISO(),...data};
@@ -1676,7 +1712,7 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
     </div>
     {!ehAluno && <button className="fab" onClick={()=>setEditingEx('new')}>＋ Exercício</button>}
     {editingEx && !ehAluno && <ExerciseSheet initial={editingEx==='new'?null:editingEx} onSave={saveEx} onClose={()=>setEditingEx(null)}/>}
-    {registering && <RegisterSheet exName={registering.name} lastLog={lastLogOfExercise(s,registering.name,registering.exerciseId)} onSave={saveLog} onClose={()=>setRegistering(null)} academia={s.academia} historico={registering.logs||[]}/>}
+    {registering && <RegisterSheet exName={registering.name} lastLog={lastLogOfExercise(s,registering.name,registering.exerciseId)} onSave={saveLog} onClose={()=>setRegistering(null)} academia={s.academia} historico={allLogsOfExercise(s,registering.name,registering.exerciseId)} onRenomearVariante={(a,n,b)=>renomearVarTreino(registering,a,n,b)} alunoId={studentId}/>}
   </React.Fragment>);
 }
 function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
@@ -1687,8 +1723,12 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
   const toggle=(k)=>setMetrics(m=>({...m,[k]:!m[k]}));
   const entries=allLogsOfExercise(s,exName,exId);
   // variantes (equipamentos) presentes no histórico deste exercício
-  const baseVar=varPadrao(s&&s.academia);
-  const varsUsadas=variantesDoHistorico(entries, s&&s.academia);
+  const baseOrig=varPadrao(s&&s.academia);
+  let apelidoBase=''; try{ apelidoBase=(LS_OK&&window.localStorage.getItem(chaveVarBase(studentId,exName)))||''; }catch(e){}
+  const baseVar=apelidoBase||baseOrig;
+  const varsUsadas=variantesDoHistorico(entries, s&&s.academia)
+    .map(v=>v===baseOrig?baseVar:v)
+    .filter((v,i,a)=>a.indexOf(v)===i);
   const temVarias=varsUsadas.length>1;
   const [varSel,setVarSel]=useState(null); // null = todas
   const entriesFiltradas=(varSel==null)?entries
@@ -1702,6 +1742,16 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
     setDb({...db,students:db.students.map(st=>st.id!==studentId?st:{...st,treinos:st.treinos.map(t=>({...t,exercises:t.exercises.map(ex=>norm(ex.name)===norm(exName)?{...ex,logs:(ex.logs||[]).filter(l=>l.id!==logId)}:ex)}))})});
     enqueueOp({tipo:'delete',tabela:'logs',id:logId});
     flash('Registro excluído');
+  };
+  const renomearVarEvo=(antigo,novo,ehBase)=>{
+    const alvo=(l)=>{ const v=(l.variante||'').trim(); return ehBase ? (v===''||v===antigo) : (v===antigo); };
+    const ids=entries.filter(alvo).map(l=>l.id);
+    if(!ids.length) return;
+    setDb({...db,students:db.students.map(st=>st.id!==studentId?st:{...st,treinos:st.treinos.map(t=>({...t,
+      exercises:t.exercises.map(ex=>norm(ex.name)===norm(exName)?{...ex,
+        logs:(ex.logs||[]).map(l=>alvo(l)?{...l,variante:novo}:l)}:ex)}))})});
+    ids.forEach(id=>enqueueOp({tipo:'update',tabela:'logs',id,dados:{variante:novo}}));
+    if(varSel===antigo) setVarSel(novo);
   };
   const editLogSave=(logId,data)=>{
     setDb({...db,students:db.students.map(st=>st.id!==studentId?st:{...st,treinos:st.treinos.map(t=>({...t,exercises:t.exercises.map(ex=>norm(ex.name)===norm(exName)?{...ex,logs:(ex.logs||[]).map(l=>l.id===logId?{...l,...data}:l)}:ex)}))})});
@@ -1790,7 +1840,7 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
     </div>
     {editing && <RegisterSheet exName={exName} editLog={editing}
       onSave={(data)=>editLogSave(editing.id,data)} onClose={()=>setEditing(null)}
-      academia={s.academia} historico={entries}/>}
+      academia={s.academia} historico={entries} onRenomearVariante={renomearVarEvo} alunoId={studentId}/>}
   </React.Fragment>);
 }
 function LoginHeader(){

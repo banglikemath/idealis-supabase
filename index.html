@@ -934,6 +934,16 @@ function LogoIdealis({size}){
 function chaveVarBase(alunoId, exName){
   return 'idealis_var_base_'+String(alunoId||'')+'_'+norm(exName||'');
 }
+/* chips criados mas ainda sem log — persistidos por aluno+exercício */
+function chaveVarPend(alunoId, exName){
+  return 'idealis_var_pend_'+String(alunoId||'')+'_'+norm(exName||'');
+}
+function lerVarPend(alunoId, exName){
+  try{ const r=LS_OK&&window.localStorage.getItem(chaveVarPend(alunoId,exName)); return r?JSON.parse(r):[]; }catch(e){ return []; }
+}
+function salvarVarPend(alunoId, exName, lista){
+  try{ if(LS_OK) window.localStorage.setItem(chaveVarPend(alunoId,exName), JSON.stringify(lista||[])); }catch(e){}
+}
 function varPadrao(academia){
   const a=String(academia||'').trim();
   return a ? ('Máq. '+a) : 'Máq. Principal';
@@ -1313,10 +1323,21 @@ function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico
   });
   const base=baseApelido||baseOriginal;
   const [variantes,setVariantes]=useState(()=>{
-    const l=variantesDoHistorico(historico,academia);
-    return baseApelido ? l.map(v=>v===baseOriginal?baseApelido:v) : l;
+    let l=variantesDoHistorico(historico,academia);
+    if(baseApelido) l=l.map(v=>v===baseOriginal?baseApelido:v);
+    // acrescenta chips criados mas ainda sem registro
+    lerVarPend(alunoId,exName).forEach(v=>{ if(v && !l.includes(v)) l.push(v); });
+    return l;
   });
-  const [variante,setVariante]=useState(isEdit?((editLog.variante||'').trim()||base):base);
+  // variante inicial = a do ÚLTIMO log (não o 1º chip), pra bater com a carga sugerida
+  const variantInicial=(()=>{
+    if(isEdit) return (editLog.variante||'').trim()||base;
+    for(let i=(historico||[]).length-1;i>=0;i--){
+      if(historico[i].carga) return ((historico[i].variante||'').trim()||base);
+    }
+    return base;
+  })();
+  const [variante,setVariante]=useState(variantInicial);
   const [novaVar,setNovaVar]=useState(null); // string em edição, ou null
   const [ajuda,setAjuda]=useState(false);
   const [renomeando,setRenomeando]=useState(null);
@@ -1325,7 +1346,12 @@ function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico
     const lista=(historico||[]).filter(l=>(((l.variante||'').trim()||base)===v) && l.carga);
     return lista.length?lista[lista.length-1].carga:'';
   };
-  const [carga,setCarga]=useState(isEdit?(editLog.carga||''):(lastLog?lastLog.carga:''));
+  const cargaInicial=(()=>{
+    if(isEdit) return editLog.carga||'';
+    const lista=(historico||[]).filter(l=>(((l.variante||'').trim()||base)===variantInicial) && l.carga);
+    return lista.length?lista[lista.length-1].carga:'';
+  })();
+  const [carga,setCarga]=useState(cargaInicial);
   const [reps,setReps]=useState(isEdit?(editLog.reps||''):'');
   const [intensidade,setInt]=useState(isEdit?(editLog.intensidade!=null?editLog.intensidade:null):null);
   const [dor,setDor]=useState(isEdit?(editLog.dor!=null?editLog.dor:null):null);
@@ -1357,6 +1383,8 @@ function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico
   const save=()=>{
     if(!carga.trim()){ setErro('Preencha a carga.'); return; }
     if(!reps.trim()){ setErro('Preencha as repetições feitas.'); return; }
+    const pend=lerVarPend(alunoId,exName);
+    if(pend.includes(variante)) salvarVarPend(alunoId,exName,pend.filter(v=>v!==variante));
     onSave({carga:carga.trim(),reps:reps.trim(),intensidade,dor,variante:(variante===base?'':variante)});
   };
   const setRepsVal=(n)=>{ setReps(String(n<0?0:n)); setErro(''); };
@@ -1369,7 +1397,12 @@ function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico
   const criarVariante=()=>{
     const nome=String(novaVar||'').trim();
     if(!nome){ setNovaVar(null); return; }
-    if(!variantes.includes(nome)) setVariantes([...variantes,nome]);
+    if(!variantes.includes(nome)){
+      setVariantes([...variantes,nome]);
+      // salva já — o chip sobrevive mesmo sem registro imediato
+      const pend=lerVarPend(alunoId,exName);
+      if(!pend.includes(nome)) salvarVarPend(alunoId,exName,[...pend,nome]);
+    }
     setNovaVar(null); escolherVariante(nome);
   };
   const confirmarRenome=()=>{
@@ -1378,6 +1411,8 @@ function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico
     if(!nome||!antigo||nome===antigo){ setRenomeando(null); return; }
     if(variantes.includes(nome)){ setRenomeando(null); return; } // já existe, evita duplicar
     setVariantes(variantes.map(v=>v===antigo?nome:v));
+    const pend=lerVarPend(alunoId,exName);
+    if(pend.includes(antigo)) salvarVarPend(alunoId,exName,pend.map(v=>v===antigo?nome:v));
     if(variante===antigo) setVariante(nome);
     // grava o novo nome nos logs — inclusive nos que estavam sem variante (base),
     // senão a variante base "renasce" ao reabrir a tela
@@ -1390,7 +1425,7 @@ function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico
   };
   return (<div className="backdrop" onClick={onClose}>
     <div className="sheet" onClick={e=>e.stopPropagation()}>
-      <div className="regeyebrow">{isEdit?'Editar registro':'Registrar hoje'}{isEdit && ' · '+fmtDate(editLog.date)}</div>
+      <div className="regeyebrow">{isEdit?'Editar registro':'Registrar Carga'}{isEdit && ' · '+fmtDate(editLog.date)}</div>
       <h2 className="regexname">{exName}</h2>
       <div className="varbloco">
         <div className="varhead">
@@ -1662,10 +1697,10 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
               {last.reps && <span className="pill big"><span className="k">Reps</span>{last.reps}</span>}
               {last.intensidade!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(last.intensidade)}}></span><span className="k">Int</span>{last.intensidade}</span>}
               {last.dor!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(last.dor)}}></span><span className="k">Dor art.</span>{last.dor}</span>}
-            </React.Fragment> : <span className="lastnote">Ainda sem registro — toque em “Registrar hoje”.</span>}
+            </React.Fragment> : <span className="lastnote">Ainda sem registro — toque em “Registrar Carga”.</span>}
           </div>
           <div className="exactions">
-            <button className="reg" onClick={()=>setRegistering(ex)}>Registrar hoje</button>
+            <button className="reg" onClick={()=>setRegistering(ex)}>Registrar Carga</button>
             <button className="evo" onClick={()=>nav({name:'evolution',studentId,exName:ex.name,exId:ex.exerciseId,back:{name:'treino',studentId,treinoId}})}>Evolução</button>
             {!ehAluno && <button className="mini" onClick={()=>setEditingEx(ex)}>✎</button>}
             {!ehAluno && <button className="mini" onClick={()=>delEx(ex.id)}>🗑</button>}

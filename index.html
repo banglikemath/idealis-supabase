@@ -340,7 +340,13 @@
   .exseries.met{color:var(--cyan-2);border-color:rgba(0,201,204,.4);background:rgba(0,201,204,.1);font-weight:700}
   .metplano{display:flex;flex-direction:column;gap:5px;margin:10px 0 2px;padding:10px;border-radius:12px;
     background:var(--surface-2);border:1px solid var(--line)}
-  .mpserie{display:flex;align-items:flex-start;gap:9px;padding:7px 8px;border-radius:9px;background:var(--bg)}
+  .mpserie{display:flex;align-items:flex-start;gap:9px;padding:7px 8px;border-radius:9px;background:var(--bg);
+    border:1px solid transparent;transition:opacity .2s,border-color .2s}
+  .mpserie.feita{opacity:.42}
+  .mpserie.feita .mpnum{color:#6ee89a}
+  .mpserie.feita .mpreps{text-decoration:line-through;text-decoration-thickness:1px}
+  .mpserie.atual{border-color:var(--cyan);background:rgba(0,201,204,.09)}
+  .mpserie.atual .mpreps{color:var(--cyan-2)}
   .mpnum{flex:0 0 auto;min-width:24px;font-size:11.5px;font-weight:700;color:var(--cyan-2);padding-top:2px}
   .mpbody{flex:1;min-width:0}
   .mplinha{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
@@ -822,8 +828,15 @@ async function flushQueue(estruturaSnapshot){
 
 /* parseia "45~60" -> {min:45,max:60}; "60" -> {min:60,max:60} */
 function parseDescanso(txt){
-  const s=String(txt||'').trim();
+  let s=String(txt||'').trim().toLowerCase();
   if(!s) return null;
+  // minutos: "2min", "2 m", "2'"
+  const mm=s.match(/^(\d+)\s*(?:minutos?|min|m|')$/);
+  if(mm){ const v=parseInt(mm[1],10)*60; return {min:v,max:v}; }
+  const mr=s.match(/^(\d+)\s*[~\-–a]\s*(\d+)\s*(?:minutos?|min|m|')$/);
+  if(mr) return {min:parseInt(mr[1],10)*60, max:parseInt(mr[2],10)*60};
+  // remove sufixos de segundos: "60s", "60 seg", "60 segundos", "60\""
+  s=s.replace(/segundos?|seg\.?|s\b|"|''/g,' ').replace(/\s+/g,' ').trim();
   const m=s.match(/^(\d+)\s*[~\-–a]\s*(\d+)$/);
   if(m) return {min:parseInt(m[1],10), max:parseInt(m[2],10)};
   const u=s.match(/^(\d+)$/);
@@ -1973,18 +1986,14 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
                 </button>}
           </div>
           {ex.exerciseId!=null && videoPorId[String(ex.exerciseId)] && <VideoExercicio url={videoPorId[String(ex.exerciseId)]}/>}
-          <div className="exlast">
-            {last ? <React.Fragment>
-              <span className="lastnote">Última carga · {fmtDate(last.date)}</span>
-              <span className="pill big"><span className="k">Carga</span>{last.carga||'—'}</span>
-              {last.reps && <span className="pill big"><span className="k">Reps</span>{last.reps}</span>}
-              {last.intensidade!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(last.intensidade)}}></span><span className="k">Int</span>{last.intensidade}</span>}
-              {last.dor!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(last.dor)}}></span><span className="k">Dor art.</span>{last.dor}</span>}
-            </React.Fragment> : <span className="lastnote">Ainda sem registro — toque em “Registrar Carga”.</span>}
-            {ex.metodo && <div className="metplano">
-              {ex.metodo.series.map((sr,i)=>(
-                <div className="mpserie" key={i}>
-                  <span className="mpnum">{i+1}ª</span>
+          {ex.metodo && <div className="metplanowrap">
+            <div className="metplano">
+              {ex.metodo.series.map((sr,i)=>{
+                const fe=seriesFeitas[ex.id]||0;
+                const st = i<fe ? ' feita' : (i===fe ? ' atual' : '');
+                return (
+                <div className={'mpserie'+st} key={i}>
+                  <span className="mpnum">{i<fe?'✓':(i+1)+'ª'}</span>
                   <div className="mpbody">
                     <div className="mplinha">
                       <span className="mpreps">{sr.reps||'—'}</span>
@@ -2003,10 +2012,19 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
                     ))}
                   </div>
                   {sr.descanso && <span className="mpdesc">{sr.descanso}</span>}
-                </div>
-              ))}
-            </div>}
-            {ex.observacao && <div className="exobs"><span className="eoico">💬</span><span className="eotxt">{ex.observacao}</span></div>}
+                </div>);
+              })}
+            </div>
+          </div>}
+          {ex.observacao && <div className="exobs"><span className="eoico">💬</span><span className="eotxt">{ex.observacao}</span></div>}
+          <div className="exlast">
+            {last ? <React.Fragment>
+              <span className="lastnote">Última carga · {fmtDate(last.date)}</span>
+              <span className="pill big"><span className="k">Carga</span>{last.carga||'—'}</span>
+              {last.reps && <span className="pill big"><span className="k">Reps</span>{last.reps}</span>}
+              {last.intensidade!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(last.intensidade)}}></span><span className="k">Int</span>{last.intensidade}</span>}
+              {last.dor!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(last.dor)}}></span><span className="k">Dor art.</span>{last.dor}</span>}
+            </React.Fragment> : <span className="lastnote">Ainda sem registro — toque em “Registrar Carga”.</span>}
           </div>
           <div className="exactions">
             <button className="reg" onClick={()=>setRegistering(ex)}>Registrar Carga</button>

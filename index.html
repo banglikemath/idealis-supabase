@@ -60,7 +60,12 @@
   .avatar .avcam{position:absolute;right:-1px;bottom:-1px;width:20px;height:20px;border-radius:7px;
     background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;font-size:10px;line-height:1}
   .avatar.avbusy{opacity:.55}
-  .perfilrow{display:flex;align-items:center;gap:14px;padding:4px 2px 18px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  .logoid{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;color:#ddff00}
+  .logoid svg{width:100%;height:100%;display:block}
+  .perfilrow{display:flex;align-items:center;gap:14px;padding:2px 2px 18px;margin-bottom:2px}
+  .secaotit{display:flex;flex-direction:column;gap:2px;font-size:15px;font-weight:700;color:var(--text);
+    padding:14px 2px 12px;margin-top:2px;border-top:1px solid var(--line)}
+  .secaotit .secaosub{font-size:12px;font-weight:500;color:var(--muted)}
   .perfilrow .avatar .avini{font-size:26px}
   .perfilmeta{min-width:0;flex:1}
   .perfilnome{font-size:19px;font-weight:700;color:var(--text);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -882,9 +887,21 @@ function SyncBadge({sync,onRetry}){
   else return null;
   return <button className={'syncbadge '+cls} onClick={onRetry}>{txt}</button>;
 }
-function TopBar({title,sub,onBack}){
+/* Logo Idealis (vetorizada, herda a cor via currentColor) */
+const LOGO_SVG = "<svg viewBox=\"0 0 1920 1920\" xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\"><g transform=\"translate(0,1920) scale(0.1,-0.1)\" fill=\"currentColor\"><path d=\"M9155 19019 c-1338 -64 -2627 -404 -3810 -1004 -1587 -805 -2919 -2044 -3831 -3565 -1023 -1705 -1477 -3667 -1308 -5655 216 -2544 1447 -4874 3434 -6500 1265 -1036 2787 -1726 4398 -1994 2550 -425 5147 204 7202 1744 1979 1482 3301 3672 3674 6085 151 979 153 1931 5 2910 -367 2424 -1692 4627 -3679 6115 -908 681 -1919 1183 -3035 1508 -957 280 -2035 405 -3050 356z m925 -1004 c968 -52 1917 -273 2810 -652 2215 -941 3936 -2797 4699 -5068 498 -1484 576 -3070 225 -4595 -638 -2770 -2650 -5045 -5324 -6020 -1155 -421 -2348 -579 -3620 -480 -357 28 -943 125 -1300 215 -1753 441 -3316 1424 -4464 2810 -557 672 -1021 1454 -1343 2265 -1021 2569 -710 5499 825 7790 832 1240 1949 2220 3282 2879 848 419 1730 685 2670 805 500 63 1002 80 1540 51z M10017 14913 c-758 -1027 -1374 -1869 -1369 -1871 7 -2 2971 945 2980 953 5 5 -223 2785 -228 2785 -3 0 -625 -840 -1383 -1867z M9365 12571 l-1480 -488 -41 -54 c-23 -30 -574 -781 -1224 -1669 -651 -888 -1188 -1618 -1194 -1622 -6 -4 891 -8 1994 -9 1103 0 2015 -4 2026 -7 19 -6 -22 -67 -404 -587 -233 -319 -1046 -1428 -1805 -2465 -758 -1037 -1390 -1895 -1404 -1907 l-24 -23 2525 0 2526 0 1123 616 c617 338 1128 621 1135 628 22 21 -552 25 -2418 19 l-1705 -6 26 34 c14 19 637 860 1384 1869 1535 2074 1467 1983 1958 2610 l364 465 -291 6 c-160 3 -1087 4 -2060 1 -1307 -4 -1768 -2 -1765 6 2 6 488 665 1079 1463 591 799 1101 1488 1133 1531 43 58 53 78 40 77 -10 0 -684 -220 -1498 -488z\"/></g></svg>";
+function LogoIdealis({size}){
+  return (<span className="logoid" style={{width:size||30,height:size||30}}
+    dangerouslySetInnerHTML={{__html: LOGO_SVG}}/>);
+}
+function saudacao(){
+  const h=new Date().getHours();
+  if(h<12) return 'Bom dia';
+  if(h<18) return 'Boa tarde';
+  return 'Boa noite';
+}
+function TopBar({title,sub,onBack,logo}){
   return (<div className="topbar">
-    <button className="iconbtn" onClick={onBack}>{onBack?'‹':'≡'}</button>
+    {logo ? <LogoIdealis size={30}/> : <button className="iconbtn" onClick={onBack}>{onBack?'‹':'≡'}</button>}
     <h1>{title}{sub && <React.Fragment><br/><span className="sub">{sub}</span></React.Fragment>}</h1>
   </div>);
 }
@@ -1054,15 +1071,19 @@ function StudentDetail({db,setDb,nav,studentId,flash,ehAluno}){
     setNome('');setAdding(false);
   };
   return (<React.Fragment>
-    <TopBar title={ehAluno?'Meus treinos':s.name} sub={ehAluno?'Escolha o treino de hoje':'Treinos fixos'} onBack={ehAluno?null:()=>nav({name:'students'})}/>
+    <TopBar title={ehAluno?'Idealis':s.name} sub={ehAluno?'Presencial':'Treinos fixos'} onBack={ehAluno?null:()=>nav({name:'students'})} logo={ehAluno}/>
     <div className="screen">
-      {ehAluno && <div className="perfilrow">
-        <Avatar nome={s.name} foto={s.foto} size={64} onPick={trocarFotoAluno} busy={subindoFoto}/>
-        <div className="perfilmeta">
-          <div className="perfilnome">{s.name}</div>
-          <div className="perfilsub">{treinos.length} {treinos.length===1?'treino':'treinos'} · toque na foto para trocar</div>
+      {ehAluno && <React.Fragment>
+        <div className="perfilrow">
+          <Avatar nome={s.name} foto={s.foto} size={64} onPick={trocarFotoAluno} busy={subindoFoto}/>
+          <div className="perfilmeta">
+            <div className="perfilnome">{s.name}</div>
+            <div className="perfilsub">{saudacao()} · toque na foto para trocar</div>
+          </div>
         </div>
-      </div>}
+        {treinos.length>0 && <div className="secaotit">Meus treinos
+          <span className="secaosub">Escolha o treino de hoje</span></div>}
+      </React.Fragment>}
       {treinos.length===0 && <div className="empty"><div className="big">📋</div>
         <p>{ehAluno?'Nenhum treino montado ainda. Fale com seu treinador.':'Nenhum treino ainda. Crie o '}{!ehAluno && <b>Treino A</b>}{!ehAluno && ' e adicione os exercícios — ele fica fixo pelas próximas semanas.'}</p></div>}
       {treinos.map(t=>{

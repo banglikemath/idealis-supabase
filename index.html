@@ -7,7 +7,7 @@
 <title>Idealis Presencial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/prop-types@15/prop-types.min.js" crossorigin></script>
@@ -35,7 +35,7 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
-    font-family:'Space Grotesk',system-ui,sans-serif;overscroll-behavior-y:none}
+    font-family:'Sora',system-ui,sans-serif;overscroll-behavior-y:none}
   #root{max-width:520px;margin:0 auto;min-height:100vh;position:relative}
   button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
   input,textarea{font-family:inherit}
@@ -281,6 +281,30 @@
   .rtrunning.liberado .rtclock{color:#ddff00}
   .rtrunning.fim .rtclock{color:var(--muted)}
   .rtrunning .rtcancel{font-size:11px;font-weight:500;color:var(--muted)}
+  .varbloco{margin:2px 0 16px;padding:12px 13px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line)}
+  .varhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+  .varlab{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+  .varinfo{width:20px;height:20px;border-radius:50%;border:1px solid var(--line);background:transparent;
+    color:var(--muted);font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;line-height:1;flex-shrink:0}
+  .varinfo:active{background:var(--surface);color:var(--text)}
+  .varajuda{font-size:11.5px;line-height:1.45;color:var(--muted);background:var(--bg);border:1px solid var(--line);
+    border-radius:10px;padding:9px 11px;margin-bottom:10px}
+  .varchips,.varfiltro{display:flex;flex-wrap:wrap;gap:7px}
+  .varfiltro{margin:0 2px 14px}
+  .varchip{padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--bg);
+    color:var(--muted);font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;
+    max-width:180px;overflow:hidden;text-overflow:ellipsis}
+  .varchip.sel{border-color:var(--cyan);background:rgba(0,201,204,.13);color:var(--cyan-2)}
+  .varchip.varadd{padding:7px 13px;font-size:15px;font-weight:700;line-height:1}
+  .varinput{flex:1;min-width:130px;padding:7px 12px;border-radius:999px;border:1px solid var(--cyan);
+    background:var(--bg);color:var(--text);font-family:inherit;font-size:12.5px}
+  .varrename{display:flex;gap:6px;margin-top:9px}
+  .varrename input{flex:1;min-width:0;padding:8px 12px;border-radius:10px;border:1px solid var(--cyan);
+    background:var(--bg);color:var(--text);font-family:inherit;font-size:13px}
+  .varrename .vrok,.varrename .vrcancel{padding:8px 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg);color:var(--muted);font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+  .varrename .vrok{border-color:var(--cyan);color:var(--cyan-2)}
+  .pill.vpill{color:var(--cyan-2);border-color:rgba(0,201,204,.35);background:rgba(0,201,204,.08)}
   .filmtoggle{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:13px;border:1px solid var(--line);background:var(--surface-2);font-family:inherit;cursor:pointer;text-align:left;transition:border-color .18s,background .18s}
   .filmtoggle.on{border-color:var(--cyan);background:rgba(0,201,204,.09)}
   .filmtoggle .ftbox{flex:0 0 24px;width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#04191a;transition:.18s}
@@ -504,10 +528,10 @@ async function fetchDbFromSupabase(){
   try{
     // o RLS já filtra: treinador vê tudo, aluno vê só o dele
     const [rAlunos, rTreinos, rEx, rLogs, rSess] = await Promise.all([
-      sb.from('alunos').select('id,nome,foto_url').order('nome'),
+      sb.from('alunos').select('id,nome,foto_url,academia').order('nome'),
       sb.from('treinos').select('id,aluno_id,nome,ordem,concluido_data').order('ordem'),
       sb.from('exercicios').select('id,treino_id,nome,series,cardapio_id,ordem,done_date,descanso,filmar').order('ordem'),
-      sb.from('logs').select('id,exercicio_id,data,carga,reps,intensidade,dor').order('data'),
+      sb.from('logs').select('id,exercicio_id,data,carga,reps,intensidade,dor,variante').order('data'),
       sb.from('sessoes').select('id,aluno_id,treino_id,data,origem').order('data')
     ]);
     const err = rAlunos.error||rTreinos.error||rEx.error||rLogs.error||rSess.error;
@@ -517,7 +541,7 @@ async function fetchDbFromSupabase(){
     (rLogs.data||[]).forEach(l=>{
       (logsPorEx[l.exercicio_id]=logsPorEx[l.exercicio_id]||[]).push({
         id:l.id, date:l.data, carga:l.carga||'', reps:l.reps||'',
-        intensidade:l.intensidade, dor:l.dor
+        intensidade:l.intensidade, dor:l.dor, variante:l.variante||''
       });
     });
     const exPorTreino={};
@@ -540,7 +564,7 @@ async function fetchDbFromSupabase(){
       });
     });
     const students=(rAlunos.data||[]).map(a=>({
-      id:a.id, name:a.nome, foto: a.foto_url||'', treinos: treinosPorAluno[a.id]||[]
+      id:a.id, name:a.nome, foto: a.foto_url||'', academia: a.academia||'', treinos: treinosPorAluno[a.id]||[]
     }));
     return {ok:true, db:{students}};
   }catch(e){
@@ -651,7 +675,7 @@ function buildEstruturaSnapshot(db){
         exercises:(t.exercises||[]).map(ex=>({
           id:ex.id, name:ex.name, series:ex.series,
           filmar:!!ex.filmar,
-          logs:(ex.logs||[]).map(l=>({id:l.id,date:l.date,carga:l.carga,reps:l.reps,intensidade:l.intensidade,dor:l.dor}))
+          logs:(ex.logs||[]).map(l=>({id:l.id,date:l.date,carga:l.carga,reps:l.reps,intensidade:l.intensidade,dor:l.dor,variante:l.variante||''}))
           // doneDate propositalmente omitido (efêmero do dia)
         }))
       }))
@@ -905,6 +929,22 @@ function LogoIdealis({size}){
   return (<span className="logoid" style={{width:size||30,height:size||30}}
     dangerouslySetInnerHTML={{__html: LOGO_SVG}}/>);
 }
+/* Nome da 1ª variante: usa a academia do aluno quando existir */
+function varPadrao(academia){
+  const a=String(academia||'').trim();
+  return a ? ('Máq. '+a) : 'Máq. Principal';
+}
+/* Lista de variantes já usadas no histórico daquele exercício */
+function variantesDoHistorico(logs, academia){
+  const base=varPadrao(academia);
+  const vistas=[];
+  (logs||[]).forEach(l=>{
+    const v=(l.variante||'').trim() || base;
+    if(!vistas.includes(v)) vistas.push(v);
+  });
+  if(!vistas.includes(base)) vistas.unshift(base);
+  return vistas;
+}
 function primeiroNome(n){ return String(n||'').trim().split(/\s+/)[0] || ''; }
 function saudacao(){
   const h=new Date().getHours();
@@ -926,17 +966,28 @@ function TopBar({title,sub,onBack,logo,onSair}){
   </div>);
 }
 /* menu reutilizável: editar nome + apagar (com confirmação) para aluno/treino/exercício */
-function RowMenu({label,currentName,onRename,onDelete,onClose}){
-  const [mode,setMode]=useState('menu'); // menu | rename | confirm
+function RowMenu({label,currentName,onRename,onDelete,onClose,academia,onAcademia}){
+  const [mode,setMode]=useState('menu'); // menu | rename | confirm | academia
   const [nome,setNome]=useState(currentName||'');
+  const [acad,setAcad]=useState(academia||'');
   return (<div className="backdrop" onClick={onClose}>
     <div className="sheet menusheet" onClick={e=>e.stopPropagation()}>
       {mode==='menu' && <React.Fragment>
         <h2>{currentName}</h2><div className="h2sub">O que deseja fazer?</div>
         <button className="opt" onClick={()=>setMode('rename')}>✎ Editar nome</button>
+        {onAcademia && <button className="opt" onClick={()=>setMode('academia')}>🏋️ Academia{academia?' · '+academia:''}</button>}
         <button className="opt del" onClick={()=>setMode('confirm')}>🗑 Apagar {label}</button>
         <div className="sheetactions" style={{marginTop:16}}>
           <button className="btn ghost" onClick={onClose}>Fechar</button></div>
+      </React.Fragment>}
+      {mode==='academia' && <React.Fragment>
+        <h2>Academia</h2><div className="h2sub">Onde {currentName} treina</div>
+        <div className="field"><label>Nome da academia</label>
+          <input autoFocus value={acad} onChange={e=>setAcad(e.target.value)} placeholder="Ex: Smart Fit"/></div>
+        <div className="h2sub" style={{marginTop:-6}}>Usado como nome do primeiro equipamento ao registrar cargas.</div>
+        <div className="sheetactions">
+          <button className="btn ghost" onClick={onClose}>Cancelar</button>
+          <button className="btn" onClick={()=>{onAcademia(acad.trim());onClose();}}>Salvar</button></div>
       </React.Fragment>}
       {mode==='rename' && <React.Fragment>
         <h2>Editar nome</h2><div className="h2sub">{label}</div>
@@ -1014,6 +1065,10 @@ function Students({db,setDb,nav}){
     setDb({...db,students:db.students.map(x=>x.id===id?{...x,name:novo}:x)});
     enqueueOp({tipo:'update',tabela:'alunos',id,dados:{nome:novo}});
   };
+  const setAcademia=(id,academia)=>{
+    setDb(d=>({...d,students:d.students.map(x=>x.id===id?{...x,academia}:x)}));
+    enqueueOp({tipo:'update',tabela:'alunos',id,dados:{academia:academia||null}});
+  };
   const deleteStudent=(id)=>{
     setDb({...db,students:db.students.filter(x=>x.id!==id)});
     enqueueOp({tipo:'delete',tabela:'alunos',id});
@@ -1054,6 +1109,7 @@ function Students({db,setDb,nav}){
       </div></div>}
     {menu && <RowMenu label="aluno" currentName={menu.name}
       onRename={(novo)=>renameStudent(menu.id,novo)} onDelete={()=>deleteStudent(menu.id)}
+      academia={menu.academia} onAcademia={(a)=>setAcademia(menu.id,a)}
       onClose={()=>setMenu(null)}/>}
   </React.Fragment>);
 }
@@ -1244,8 +1300,19 @@ function ExerciseSheet({initial,onSave,onClose}){
         <button className="btn" onClick={save}>Salvar</button></div>
     </div></div>);
 }
-function RegisterSheet({exName,lastLog,editLog,onSave,onClose}){
+function RegisterSheet({exName,lastLog,editLog,onSave,onClose,academia,historico}){
   const isEdit=!!editLog;
+  const base=varPadrao(academia);
+  const [variantes,setVariantes]=useState(()=>variantesDoHistorico(historico,academia));
+  const [variante,setVariante]=useState(isEdit?((editLog.variante||'').trim()||base):base);
+  const [novaVar,setNovaVar]=useState(null); // string em edição, ou null
+  const [ajuda,setAjuda]=useState(false);
+  const [renomeando,setRenomeando]=useState(null);
+  // última carga registrada na variante escolhida (sugestão inteligente)
+  const ultimaDaVariante=(v)=>{
+    const lista=(historico||[]).filter(l=>(((l.variante||'').trim()||base)===v) && l.carga);
+    return lista.length?lista[lista.length-1].carga:'';
+  };
   const [carga,setCarga]=useState(isEdit?(editLog.carga||''):(lastLog?lastLog.carga:''));
   const [reps,setReps]=useState(isEdit?(editLog.reps||''):'');
   const [intensidade,setInt]=useState(isEdit?(editLog.intensidade!=null?editLog.intensidade:null):null);
@@ -1278,15 +1345,63 @@ function RegisterSheet({exName,lastLog,editLog,onSave,onClose}){
   const save=()=>{
     if(!carga.trim()){ setErro('Preencha a carga.'); return; }
     if(!reps.trim()){ setErro('Preencha as repetições feitas.'); return; }
-    onSave({carga:carga.trim(),reps:reps.trim(),intensidade,dor});
+    onSave({carga:carga.trim(),reps:reps.trim(),intensidade,dor,variante:(variante===base?'':variante)});
   };
   const setRepsVal=(n)=>{ setReps(String(n<0?0:n)); setErro(''); };
   const bumpReps=(d)=>{ const cur=parseInt(reps,10); setRepsVal((isNaN(cur)?0:cur)+d); };
   const repPresets=[6,8,10,12,15,20];
+  const escolherVariante=(v)=>{
+    setVariante(v);
+    if(!isEdit){ const u=ultimaDaVariante(v); setCarga(u||''); setErro(''); }
+  };
+  const criarVariante=()=>{
+    const nome=String(novaVar||'').trim();
+    if(!nome){ setNovaVar(null); return; }
+    if(!variantes.includes(nome)) setVariantes([...variantes,nome]);
+    setNovaVar(null); escolherVariante(nome);
+  };
+  const confirmarRenome=()=>{
+    const nome=String(renomeando&&renomeando.novo||'').trim();
+    const antigo=renomeando&&renomeando.antigo;
+    if(!nome||!antigo){ setRenomeando(null); return; }
+    setVariantes(variantes.map(v=>v===antigo?nome:v));
+    if(variante===antigo) setVariante(nome);
+    setRenomeando(null);
+  };
   return (<div className="backdrop" onClick={onClose}>
     <div className="sheet" onClick={e=>e.stopPropagation()}>
       <div className="regeyebrow">{isEdit?'Editar registro':'Registrar hoje'}{isEdit && ' · '+fmtDate(editLog.date)}</div>
       <h2 className="regexname">{exName}</h2>
+      <div className="varbloco">
+        <div className="varhead">
+          <span className="varlab">Equipamento</span>
+          <button type="button" className="varinfo" onClick={()=>setAjuda(a=>!a)} aria-label="Como usar">i</button>
+        </div>
+        {ajuda && <div className="varajuda">
+          Use quando o mesmo exercício é feito em máquinas diferentes (outra academia ou outro aparelho).
+          As cargas ficam guardadas separadamente para cada uma. Toque e segure um chip para renomear.
+        </div>}
+        <div className="varchips">
+          {variantes.map(v=>(
+            <button type="button" key={v}
+              className={'varchip'+(variante===v?' sel':'')}
+              onClick={()=>escolherVariante(v)}
+              onContextMenu={e=>{e.preventDefault();setRenomeando({antigo:v,novo:v});}}>{v}</button>
+          ))}
+          {novaVar===null
+            ? <button type="button" className="varchip varadd" onClick={()=>setNovaVar('')}>+</button>
+            : <input className="varinput" autoFocus value={novaVar} placeholder="Nome do equipamento"
+                onChange={e=>setNovaVar(e.target.value)}
+                onBlur={criarVariante}
+                onKeyDown={e=>{ if(e.key==='Enter')criarVariante(); if(e.key==='Escape')setNovaVar(null); }}/>}
+        </div>
+        {renomeando && <div className="varrename">
+          <input autoFocus value={renomeando.novo} onChange={e=>setRenomeando({...renomeando,novo:e.target.value})}
+            onKeyDown={e=>{ if(e.key==='Enter')confirmarRenome(); if(e.key==='Escape')setRenomeando(null); }}/>
+          <button type="button" className="vrok" onClick={confirmarRenome}>OK</button>
+          <button type="button" className="vrcancel" onClick={()=>setRenomeando(null)}>✕</button>
+        </div>}
+      </div>
       <div className="field"><label className="reglab">Carga</label>
         <input value={carga} inputMode="decimal" onChange={e=>{setCarga(e.target.value);setErro('');}} placeholder="Ex: 40kg"/>
         <div className="reprow">
@@ -1447,7 +1562,8 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
     enqueueOp({tipo:'insert',tabela:'logs',dados:{
       id:log.id, exercicio_id:ex.id, data:log.date,
       carga:log.carga||null, reps:log.reps||null,
-      intensidade:log.intensidade, dor:log.dor
+      intensidade:log.intensidade, dor:log.dor,
+      variante:log.variante||null
     }});
     flash('Carga registrada ✓'); setRegistering(null);
   };
@@ -1560,7 +1676,7 @@ function TreinoView({db,setDb,nav,studentId,treinoId,flash,ehAluno,timer,seriesF
     </div>
     {!ehAluno && <button className="fab" onClick={()=>setEditingEx('new')}>＋ Exercício</button>}
     {editingEx && !ehAluno && <ExerciseSheet initial={editingEx==='new'?null:editingEx} onSave={saveEx} onClose={()=>setEditingEx(null)}/>}
-    {registering && <RegisterSheet exName={registering.name} lastLog={lastLogOfExercise(s,registering.name,registering.exerciseId)} onSave={saveLog} onClose={()=>setRegistering(null)}/>}
+    {registering && <RegisterSheet exName={registering.name} lastLog={lastLogOfExercise(s,registering.name,registering.exerciseId)} onSave={saveLog} onClose={()=>setRegistering(null)} academia={s.academia} historico={registering.logs||[]}/>}
   </React.Fragment>);
 }
 function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
@@ -1570,7 +1686,14 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
   const [metrics,setMetrics]=useState({carga:true,volume:true,intensidade:false,dor:false});
   const toggle=(k)=>setMetrics(m=>({...m,[k]:!m[k]}));
   const entries=allLogsOfExercise(s,exName,exId);
-  const chartData=entries.map(e=>{
+  // variantes (equipamentos) presentes no histórico deste exercício
+  const baseVar=varPadrao(s&&s.academia);
+  const varsUsadas=variantesDoHistorico(entries, s&&s.academia);
+  const temVarias=varsUsadas.length>1;
+  const [varSel,setVarSel]=useState(null); // null = todas
+  const entriesFiltradas=(varSel==null)?entries
+    :entries.filter(e=>(((e.variante||'').trim()||baseVar)===varSel));
+  const chartData=entriesFiltradas.map(e=>{
     const c=numFrom(e.carga), r=numFrom(e.reps);
     return {date:fmtDate(e.date), carga:c, volume:(c!=null&&r!=null)?c*r:null,
       intensidade:(e.intensidade!=null?e.intensidade:null), dor:(e.dor!=null?e.dor:null)};
@@ -1584,7 +1707,8 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
     setDb({...db,students:db.students.map(st=>st.id!==studentId?st:{...st,treinos:st.treinos.map(t=>({...t,exercises:t.exercises.map(ex=>norm(ex.name)===norm(exName)?{...ex,logs:(ex.logs||[]).map(l=>l.id===logId?{...l,...data}:l)}:ex)}))})});
     enqueueOp({tipo:'update',tabela:'logs',id:logId,dados:{
       carga:data.carga||null, reps:data.reps||null,
-      intensidade:data.intensidade, dor:data.dor
+      intensidade:data.intensidade, dor:data.dor,
+      variante:data.variante||null
     }});
     flash('Registro atualizado ✓'); setEditing(null);
   };
@@ -1641,9 +1765,15 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
   return (<React.Fragment>
     <TopBar title={exName} sub={'Evolução · '+s.name} onBack={()=>nav(back||{name:'student',studentId})}/>
     <div className="screen">
+      {temVarias && <div className="varfiltro">
+        <button type="button" className={'varchip'+(varSel==null?' sel':'')} onClick={()=>setVarSel(null)}>Todos</button>
+        {varsUsadas.map(v=>(
+          <button type="button" key={v} className={'varchip'+(varSel===v?' sel':'')} onClick={()=>setVarSel(v)}>{v}</button>
+        ))}
+      </div>}
       {chart}
       <h3 style={{fontSize:15,margin:'6px 4px 10px',color:'var(--muted)'}}>Histórico contínuo</h3>
-      {[...entries].reverse().map(e=>(
+      {[...entriesFiltradas].reverse().map(e=>(
         <div key={e.id} className="histrow">
           <div className="hdate">{fmtDate(e.date)}</div>
           <div className="hmeta">
@@ -1651,6 +1781,7 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
             {e.reps && <span className="pill"><span className="k">Reps</span>{e.reps}</span>}
             {e.intensidade!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(e.intensidade)}}></span>{e.intensidade}</span>}
             {e.dor!=null && <span className="pill dot"><span className="swatch" style={{background:scaleColor(e.dor)}}></span>Dor art. {e.dor}</span>}
+            {temVarias && <span className="pill vpill">{((e.variante||'').trim()||baseVar)}</span>}
           </div>
           <button className="hedit" onClick={()=>setEditing(e)}>✎</button>
           <button className="hdel" onClick={()=>delLog(e.id)}>🗑</button>
@@ -1658,7 +1789,8 @@ function Evolution({db,setDb,nav,studentId,exName,exId,back,flash}){
       {entries.length===0 && <div className="empty"><p>Nenhum registro desse exercício ainda.</p></div>}
     </div>
     {editing && <RegisterSheet exName={exName} editLog={editing}
-      onSave={(data)=>editLogSave(editing.id,data)} onClose={()=>setEditing(null)}/>}
+      onSave={(data)=>editLogSave(editing.id,data)} onClose={()=>setEditing(null)}
+      academia={s.academia} historico={entries}/>}
   </React.Fragment>);
 }
 function LoginHeader(){
